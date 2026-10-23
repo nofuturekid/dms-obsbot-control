@@ -15,7 +15,8 @@
   "settings": "./ObsbotSettings.qml",
   "dependencies": [
     "tiny4linux-cli",
-    "v4l-utils"
+    "v4l-utils",
+    "qt6-multimedia"
   ],
   "permissions": [
     "process",
