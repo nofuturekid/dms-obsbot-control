@@ -36,7 +36,7 @@ SectionCard {
             horizontalAlignment: Text.AlignRight
             text: "Last choice. The camera doesn't report exposure."
             color: Theme.surfaceVariantText
-            font.pixelSize: Theme.fontSizeSmall - 1
+            font.pixelSize: Theme.fontSizeSmall
         }
     }
 }

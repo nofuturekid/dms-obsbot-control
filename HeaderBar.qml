@@ -8,13 +8,13 @@ Item {
 
     property var ctl
 
-    implicitHeight: 40
+    implicitHeight: badge.height
 
     Rectangle {
         id: badge
-        width: 40
-        height: 40
-        radius: 20
+        width: Theme.buttonHeightS
+        height: Theme.buttonHeightS
+        radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.surfaceContainerHighest
 

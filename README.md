@@ -37,7 +37,9 @@ is plugged in.
 
 ## Install
 
-Needs `tiny4linux-cli` (AUR) and `v4l2-ctl` (`v4l-utils`).
+Needs `tiny4linux-cli` (AUR) and `v4l2-ctl` (`v4l-utils`). The live preview
+also needs `qt6-multimedia`; without it the preview frame says so and every
+other control still works.
 
 From the DMS plugin browser, or manually:
 

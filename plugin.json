@@ -2,7 +2,7 @@
   "id": "obsbotControl",
   "name": "OBSBOT Control",
   "description": "Bar widget for the OBSBOT Tiny 2 Lite webcam: sleep/wake, AI tracking mode and speed, HDR, exposure, zoom, pan/tilt, image adjustments and a live preview",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": "nofuturekid",
   "license": "GPL-3.0-or-later",
   "icon": "videocam",

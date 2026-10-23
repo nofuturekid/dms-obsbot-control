@@ -261,9 +261,9 @@ PluginComponent {
             // Dot: the preview is holding the camera
             Rectangle {
                 visible: root.previewOn && root.live
-                width: 6
-                height: 6
-                radius: 3
+                width: Math.round(root.iconSize / 4)
+                height: width
+                radius: width / 2
                 anchors.top: parent.top
                 anchors.right: parent.right
                 color: Theme.surfaceText
@@ -308,7 +308,7 @@ PluginComponent {
 
                     Column {
                         id: leftColumn
-                        width: 376
+                        width: (parent.width - parent.spacing) / 2
                         spacing: Theme.spacingM
 
                         PreviewPane {

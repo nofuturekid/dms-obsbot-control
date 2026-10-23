@@ -1,5 +1,4 @@
 import QtQuick
-import QtMultimedia
 import qs.Common
 import qs.DCommon.Widgets
 
@@ -10,11 +9,15 @@ SectionCard {
 
     property var ctl
 
-    readonly property bool previewShown: ctl.previewOn && ctl.live
+    // Without qt6-multimedia PreviewVideo.qml fails to load; the frame then says so
+    readonly property bool videoMissing: videoLoader.status === Loader.Error
+    readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing
     readonly property var hint: !ctl.available
         ? (ctl.toolMissing
             ? { icon: "terminal", title: "Control tool not found", body: "tiny4linux-cli could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
             : { icon: "usb_off", title: "Camera not connected", body: "The Tiny 2 Lite doesn't respond on USB. Plug it back in. The bar icon hides while it is gone.", button: "Retry", buttonIcon: "refresh" })
+        : videoMissing
+            ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }
         : !ctl.awake
             ? { icon: "videocam_off", title: "Camera is asleep", body: "Lens is stowed face-down. Wake it to preview, track or adjust the picture.", button: "Wake camera", buttonIcon: "videocam" }
             : { icon: "visibility_off", title: "Preview is off", body: "Turn it on to see the picture while you adjust it. While it's on, no other app can use the camera.", button: "Start preview", buttonIcon: "play_arrow" }
@@ -22,6 +25,8 @@ SectionCard {
     function hintAction() {
         if (!ctl.available)
             ctl.refresh();
+        else if (videoMissing)
+            ctl.previewOn = false;
         else if (!ctl.awake)
             ctl.setAwake(true);
         else
@@ -42,46 +47,27 @@ SectionCard {
     Rectangle {
         width: parent.width
         height: width * 9 / 16
-        color: "black"
+        color: Theme.surfaceContainerLowest
         radius: Theme.cornerRadius
         clip: true
 
         Loader {
+            id: videoLoader
             anchors.fill: parent
-            active: pane.previewShown && pane.ctl.interactionActive
-            sourceComponent: Item {
-                MediaDevices {
-                    id: mediaDevices
-                }
-
-                CaptureSession {
-                    camera: Camera {
-                        cameraDevice: mediaDevices.videoInputs.find(d => d.description.includes("OBSBOT")) ?? mediaDevices.defaultVideoInput
-                        // 720p is plenty for a ~350 px preview and keeps MJPEG decoding cheap
-                        cameraFormat: cameraDevice.videoFormats.find(f => f.resolution.width === 1280 && f.resolution.height === 720) ?? cameraDevice.videoFormats[0]
-                        active: true
-                    }
-                    videoOutput: videoOutput
-                }
-
-                VideoOutput {
-                    id: videoOutput
-                    anchors.fill: parent
-                    fillMode: VideoOutput.PreserveAspectFit
-                }
-            }
+            active: pane.ctl.previewOn && pane.ctl.live && pane.ctl.interactionActive
+            source: Qt.resolvedUrl("PreviewVideo.qml")
         }
 
         Column {
             anchors.centerIn: parent
-            width: Math.min(280, parent.width - Theme.spacingL * 2)
+            width: parent.width - Theme.spacingXL * 2
             spacing: Theme.spacingS
             visible: !pane.previewShown
 
             DIcon {
                 anchors.horizontalCenter: parent.horizontalCenter
                 name: pane.hint.icon
-                color: "#9a9a9a"
+                color: Theme.surfaceVariantText
                 size: Theme.iconSizeLarge
             }
 
@@ -89,7 +75,7 @@ SectionCard {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 text: pane.hint.title
-                color: "#e4e4e4"
+                color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
             }
@@ -99,7 +85,7 @@ SectionCard {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: pane.hint.body
-                color: "#c4c4c4"
+                color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
 

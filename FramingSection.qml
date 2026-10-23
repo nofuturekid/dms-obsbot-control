@@ -20,16 +20,17 @@ SectionCard {
         Grid {
             id: dpad
             columns: 3
-            spacing: 4
+            spacing: Theme.spacingXS
 
-            Item { width: 40; height: 40 }
+            Item { width: upButton.width; height: upButton.height }
             DIconButton {
+                id: upButton
                 variant: "tonal"
                 iconName: "keyboard_arrow_up"
                 tooltipText: "Tilt up 5°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt + section.ctl.gimbalStep)
             }
-            Item { width: 40; height: 40 }
+            Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
@@ -48,14 +49,14 @@ SectionCard {
                 tooltipText: "Pan right 5°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.gimbalStep, section.ctl.tilt)
             }
-            Item { width: 40; height: 40 }
+            Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_down"
                 tooltipText: "Tilt down 5°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt - section.ctl.gimbalStep)
             }
-            Item { width: 40; height: 40 }
+            Item { width: upButton.width; height: upButton.height }
         }
 
         Column {
