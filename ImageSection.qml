@@ -11,8 +11,9 @@ SectionCard {
     title: "Image"
     collapsible: true
     summary: (ctl.imageAtDefaults ? "Defaults: " : "") + ctl.imageControls.map(c => c.label + " " + (ctl.image[c.name]?.value ?? "–")).join(" · ")
-    enabled: ctl.live
-    opacity: ctl.live ? 1 : 0.38
+    // the camera takes these while asleep too and keeps them when it wakes
+    enabled: ctl.available
+    opacity: ctl.available ? 1 : 0.38
 
     Column {
         width: parent.width

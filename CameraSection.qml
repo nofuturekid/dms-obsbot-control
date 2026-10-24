@@ -22,13 +22,17 @@ SectionCard {
     expanded: false
     visible: ["fov", "led", "mirror", "invert"].some(c => ctl.has(c))
     summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : "", ctl.status.mirror !== undefined ? "mirror " + (ctl.status.mirror ? "on" : "off") : "", ctl.tracking.invert !== undefined ? "invert " + (ctl.tracking.invert ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
-    enabled: ctl.live
-    opacity: ctl.live ? 1 : 0.38
+    // the camera takes these while asleep too and keeps them when it wakes
+    enabled: ctl.available
+    opacity: ctl.available ? 1 : 0.38
 
     ChipRow {
         id: fovRow
         width: parent.width
         visible: section.ctl.has("fov")
+        // ignored by the camera while it sleeps
+        enabled: section.ctl.live
+        opacity: enabled ? 1 : 0.38
         label: "Field of view"
         options: section.fovs
         currentIndex: section.fovs.findIndex(f => f.toLowerCase() === section.ctl.status.field_of_view)
