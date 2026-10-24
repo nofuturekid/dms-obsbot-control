@@ -21,6 +21,7 @@ SectionCard {
 
     // Global / face as status byte 0x07 reports it, custom = manual (UVC auto_exposure 1)
     ChipRow {
+        id: exposureRow
         width: parent.width
         label: "Exposure"
         options: section.ctl.exposureModes.map(m => m.label)
@@ -28,10 +29,12 @@ SectionCard {
         onSelected: index => section.ctl.setExposure(index)
     }
 
-    // Exposure time in 100 µs; past one frame (1/30 s = 333) it no longer brightens
+    // Exposure time in 100 µs; past one frame (1/30 s = 333) it no longer brightens.
+    // Shown but disabled outside custom exposure, so the card keeps its height.
     LabeledSlider {
         width: parent.width
-        visible: section.ctl.manualExposure
+        enabled: section.ctl.manualExposure
+        opacity: enabled ? 1 : 0.38
         label: "Exposure time"
         minimum: section.ctl.image.exposure_time?.min ?? 1
         maximum: Math.min(section.ctl.image.exposure_time?.max ?? 333, 333)
@@ -42,11 +45,20 @@ SectionCard {
 
     LabeledSlider {
         width: parent.width
-        visible: section.ctl.manualExposure
+        enabled: section.ctl.manualExposure
+        opacity: enabled ? 1 : 0.38
         label: "Gain"
         minimum: section.ctl.image.gain?.min ?? 1
         maximum: section.ctl.image.gain?.max ?? 64
         value: section.ctl.image.gain?.value ?? 0
         onMoved: value => section.ctl.setControl("gain", value)
+    }
+
+    // A click assigns currentIndex and breaks the binding; re-sync to the camera state
+    Connections {
+        target: section.ctl
+        function onStateRefreshed() {
+            exposureRow.sync();
+        }
     }
 }

@@ -2,8 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Image adjustments (UVC controls), always open; the reset button sits at the card's
-// bottom when the card is stretched to the height of the left column
+// Image adjustments (UVC controls), always open, with the reset button at the bottom
 Rectangle {
     id: section
 

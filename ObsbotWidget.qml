@@ -353,13 +353,11 @@ PluginComponent {
                     width: body.width
                     spacing: Theme.spacingM
 
-                    // Layout 2a: same two columns in every state, so the panel never jumps.
-                    // Rows: Preview | Tracking (same height), then Framing + Picture | Image.
+                    // Two independent columns; every card is as high as its content and
+                    // follows the one above it directly
                     Row {
                         width: parent.width
                         spacing: Theme.spacingM
-
-                        readonly property real topRowHeight: Math.max(preview.implicitHeight, tracking.implicitHeight)
 
                         Column {
                             id: leftColumn
@@ -367,54 +365,19 @@ PluginComponent {
                             spacing: Theme.spacingM
 
                             PreviewPane {
-                                id: preview
                                 width: parent.width
-                                height: parent.parent.topRowHeight
                                 ctl: root
                             }
 
                             FramingSection {
-                                id: framing
                                 width: parent.width
                                 ctl: root
                             }
 
                             PictureSection {
-                                id: picture
                                 width: parent.width
                                 ctl: root
                             }
-                        }
-
-                        Column {
-                            width: parent.width - leftColumn.width - parent.spacing
-                            spacing: Theme.spacingM
-
-                            TrackingSection {
-                                id: tracking
-                                width: parent.width
-                                height: parent.parent.topRowHeight
-                                ctl: root
-                            }
-
-                            ImageSection {
-                                width: parent.width
-                                height: Math.max(implicitHeight, framing.height + picture.height + parent.spacing)
-                                ctl: root
-                            }
-                        }
-                    }
-
-                    // Lite settings, collapsed by default so the popout keeps its height
-                    Row {
-                        width: parent.width
-                        spacing: Theme.spacingM
-                        visible: root.has("fov")
-
-                        Column {
-                            id: liteLeft
-                            width: (parent.width - parent.spacing) / 2
-                            spacing: Theme.spacingM
 
                             CameraSection {
                                 width: parent.width
@@ -442,8 +405,18 @@ PluginComponent {
                         }
 
                         Column {
-                            width: parent.width - liteLeft.width - parent.spacing
+                            width: parent.width - leftColumn.width - parent.spacing
                             spacing: Theme.spacingM
+
+                            TrackingSection {
+                                width: parent.width
+                                ctl: root
+                            }
+
+                            ImageSection {
+                                width: parent.width
+                                ctl: root
+                            }
 
                             AudioSection {
                                 width: parent.width
