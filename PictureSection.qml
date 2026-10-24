@@ -19,12 +19,34 @@ SectionCard {
         onToggled: checked => section.ctl.setHdr(checked)
     }
 
-    // Global / face as status byte 0x07 reports it
+    // Global / face as status byte 0x07 reports it, custom = manual (UVC auto_exposure 1)
     ChipRow {
         width: parent.width
         label: "Exposure"
         options: section.ctl.exposureModes.map(m => m.label)
-        currentIndex: section.ctl.status.face_auto_exposure === undefined ? -1 : (section.ctl.status.face_auto_exposure ? 1 : 0)
+        currentIndex: section.ctl.manualExposure ? 2 : (section.ctl.status.face_auto_exposure === undefined ? -1 : (section.ctl.status.face_auto_exposure ? 1 : 0))
         onSelected: index => section.ctl.setExposure(index)
+    }
+
+    // Exposure time in 100 µs; past one frame (1/30 s = 333) it no longer brightens
+    LabeledSlider {
+        width: parent.width
+        visible: section.ctl.manualExposure
+        label: "Exposure time"
+        minimum: section.ctl.image.exposure_time?.min ?? 1
+        maximum: Math.min(section.ctl.image.exposure_time?.max ?? 333, 333)
+        value: section.ctl.image.exposure_time?.value ?? 0
+        formatValue: v => (v / 10).toFixed(1) + " ms"
+        onMoved: value => section.ctl.setControl("exposure_time", value)
+    }
+
+    LabeledSlider {
+        width: parent.width
+        visible: section.ctl.manualExposure
+        label: "Gain"
+        minimum: section.ctl.image.gain?.min ?? 1
+        maximum: section.ctl.image.gain?.max ?? 64
+        value: section.ctl.image.gain?.value ?? 0
+        onMoved: value => section.ctl.setControl("gain", value)
     }
 }

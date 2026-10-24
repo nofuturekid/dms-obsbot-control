@@ -34,8 +34,11 @@ PluginComponent {
 
     readonly property var exposureModes: [
         { label: "Global", arg: "global" },
-        { label: "Face", arg: "face" }
+        { label: "Face", arg: "face" },
+        { label: "Custom", arg: "manual" }
     ]
+    // Manual exposure (UVC auto_exposure 1): exposure_time and gain then set the brightness
+    readonly property bool manualExposure: (image.auto_exposure?.value ?? 0) === 1
     // Settings page: tracking mode applied whenever the camera wakes up ("" = keep)
     readonly property string wakeTrackingMode: pluginData?.wakeTrackingMode ?? ""
 
@@ -209,7 +212,8 @@ PluginComponent {
 
     function setExposure(index) {
         const mode = root.exposureModes[index];
-        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, { status: { face_auto_exposure: mode.arg === "face" } });
+        const changes = mode.arg === "manual" ? { image: { auto_exposure: 1 } } : { status: { face_auto_exposure: mode.arg === "face" }, image: { auto_exposure: 0 } };
+        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, changes);
     }
 
     function setControl(name, value) {
