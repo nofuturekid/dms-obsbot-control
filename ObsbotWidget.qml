@@ -59,8 +59,9 @@ PluginComponent {
     readonly property var image: cam.image ?? ({})
     readonly property real zoomFactor: cam.zoom?.factor ?? 1
     // Gimbal pose in degrees; positive pan = camera left, positive tilt = up
-    readonly property real pan: cam.state?.gimbal?.pan ?? 0
-    readonly property real tilt: cam.state?.gimbal?.tilt ?? 0
+    // live pose (follows AI tracking), else the last pose t2l set
+    readonly property real pan: cam.pose?.pan ?? cam.state?.gimbal?.pan ?? 0
+    readonly property real tilt: cam.pose?.tilt ?? cam.state?.gimbal?.tilt ?? 0
     readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
 
     property bool toolMissing: false
@@ -228,7 +229,7 @@ PluginComponent {
     function moveGimbal(newPan, newTilt) {
         const p = Math.max(-130, Math.min(130, newPan));
         const t = Math.max(-90, Math.min(90, newTilt));
-        root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, status: { ai_mode: "static" } });
+        root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, pose: { pan: p, tilt: t }, status: { ai_mode: "static" } });
     }
 
     function degrees(d) {
