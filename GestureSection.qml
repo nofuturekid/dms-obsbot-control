@@ -21,7 +21,7 @@ SectionCard {
     collapsible: true
     expanded: false
     visible: ctl.has("gesture")
-    summary: onCount + " of " + gestures.length + " on"
+    summary: (onCount === 0 ? "All off" : gestures.filter(g => ctl.tracking[g.key] === true).map(g => g.label).join(", ") + " on") + (ctl.tracking.gesture_zoom_ratio !== undefined ? " · zoom ratio " + ctl.tracking.gesture_zoom_ratio.toFixed(1) + "×" : "")
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 

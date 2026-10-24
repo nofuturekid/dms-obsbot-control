@@ -3,7 +3,7 @@ import qs.Common
 import qs.DCommon.Widgets
 
 // Titled card around one popout section (Preview, Framing, Tracking, Picture).
-// collapsible: the title row toggles the body and shows `summary` while it is closed.
+// collapsible: the title row toggles the body; `summary` shows under the title while closed.
 // flat: no background or padding, for a collapsible group inside another card.
 // controlled: a click on the title only emits toggleRequested and the owner sets `expanded`,
 // so cards can close each other (one open card per column).
@@ -34,7 +34,7 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: titleText.implicitHeight
+            height: titleText.implicitHeight + (summaryText.visible ? Theme.spacingXS + summaryText.implicitHeight : 0)
             visible: card.title !== ""
 
             StyledText {
@@ -45,11 +45,13 @@ Rectangle {
                 font.weight: Font.Medium
             }
 
+            // Closed cards list their settings under the title, wrapping over the full width
             StyledText {
-                anchors.right: chevron.visible ? chevron.left : parent.right
-                anchors.rightMargin: chevron.visible ? Theme.spacingS : 0
-                anchors.verticalCenter: parent.verticalCenter
+                id: summaryText
+                y: titleText.implicitHeight + Theme.spacingXS
+                width: parent.width
                 visible: card.summary !== "" && card.collapsible && !card.expanded
+                wrapMode: Text.WordWrap
                 text: card.summary
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
@@ -58,7 +60,7 @@ Rectangle {
             DIcon {
                 id: chevron
                 anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: titleText.verticalCenter
                 visible: card.collapsible
                 name: card.expanded ? "expand_less" : "expand_more"
                 color: Theme.surfaceVariantText

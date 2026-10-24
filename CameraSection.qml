@@ -21,7 +21,7 @@ SectionCard {
     collapsible: true
     expanded: false
     visible: ["fov", "led", "mirror", "invert"].some(c => ctl.has(c))
-    summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : ""].filter(s => s !== "").join(" · ")
+    summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : "", ctl.status.mirror !== undefined ? "mirror " + (ctl.status.mirror ? "on" : "off") : "", ctl.tracking.invert !== undefined ? "invert " + (ctl.tracking.invert ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 

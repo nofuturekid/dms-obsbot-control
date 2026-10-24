@@ -15,7 +15,7 @@ SectionCard {
     collapsible: true
     expanded: false
     visible: ctl.has("audio")
-    summary: ctl.status.noise_reduction ? "Noise reduction " + ctl.status.noise_reduction : ""
+    summary: [ctl.status.noise_reduction ? "Noise reduction " + ctl.status.noise_reduction : "", ctl.status.pickup_distance ? "pickup " + ctl.status.pickup_distance : "", ctl.status.auto_gain !== undefined ? "auto gain " + (ctl.status.auto_gain ? "on" : "off") : "", ctl.status.mic_in_sleep !== undefined ? "mic asleep " + (ctl.status.mic_in_sleep ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 

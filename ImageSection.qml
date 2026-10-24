@@ -10,7 +10,7 @@ SectionCard {
 
     title: "Image adjustments"
     collapsible: true
-    summary: ctl.imageAtDefaults ? "Defaults" : "Custom"
+    summary: (ctl.imageAtDefaults ? "Defaults: " : "") + ctl.imageControls.map(c => c.label + " " + (ctl.image[c.name]?.value ?? "–")).join(" · ")
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 
