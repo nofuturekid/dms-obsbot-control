@@ -21,7 +21,7 @@ SectionCard {
     StyledText {
         width: parent.width
         wrapMode: Text.WordWrap
-        text: section.confirming ? "This resets every camera setting to its factory default. The camera restarts and is unavailable for about 20 seconds." : "Restores the camera's factory settings, for example after trying out saved settings."
+        text: section.confirming ? "This resets every camera setting to its factory default and deletes the presets stored in the camera. The camera restarts and is unavailable for about 20 seconds." : "Restores the camera's factory settings and deletes its stored presets, for example after trying out saved settings."
         color: section.confirming ? Theme.error : Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }
