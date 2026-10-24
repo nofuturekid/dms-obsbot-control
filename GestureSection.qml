@@ -8,7 +8,7 @@ SectionCard {
 
     property var ctl
 
-    // label shown, CLI argument, key in t2l's tracking state
+    // label shown, CLI argument, key in obsbot4linux's tracking state
     readonly property var gestures: [
         { label: "Target lock", arg: "target-lock", key: "target_lock" },
         { label: "Zoom", arg: "zoom", key: "zoom_gesture" },

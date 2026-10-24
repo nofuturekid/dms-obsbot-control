@@ -14,7 +14,7 @@
   "component": "./ObsbotWidget.qml",
   "settings": "./ObsbotSettings.qml",
   "dependencies": [
-    "t2l",
+    "obsbot4linux",
     "qt6-multimedia"
   ],
   "permissions": [

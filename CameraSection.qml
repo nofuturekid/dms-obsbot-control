@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Field of view, status LED, mirror and invert (t2l)
+// Field of view, status LED, mirror and invert (obsbot4linux)
 SectionCard {
     id: section
 

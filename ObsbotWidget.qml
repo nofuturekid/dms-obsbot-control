@@ -9,11 +9,11 @@ import qs.Modules.Plugins
 PluginComponent {
     id: root
 
-    // One long-running `t2l watch` is the only link to the camera: its state events are the
+    // One long-running `obsbot4linux watch` is the only link to the camera: its state events are the
     // only source of truth, commands are requests on its stdin. The UI patches `cam`
     // optimistically when a command goes out; the next event overwrites the patch.
 
-    // key = ai_mode in t2l's state, arg = `t2l tracking <arg>`
+    // key = ai_mode in obsbot4linux's state, arg = `obsbot4linux tracking <arg>`
     readonly property var trackingModes: [
         { label: "Static", arg: "static", key: "static" },
         { label: "Normal Tracking", arg: "normal", key: "normal" },
@@ -42,7 +42,7 @@ PluginComponent {
     // Settings page: tracking mode applied whenever the camera wakes up ("" = keep)
     readonly property string wakeTrackingMode: pluginData?.wakeTrackingMode ?? ""
 
-    // UVC controls shown as sliders; range and default come from t2l's image.<name>
+    // UVC controls shown as sliders; range and default come from obsbot4linux's image.<name>
     readonly property var imageControls: [
         { name: "brightness", label: "Brightness" },
         { name: "contrast", label: "Contrast" },
@@ -59,7 +59,7 @@ PluginComponent {
     readonly property var image: cam.image ?? ({})
     readonly property real zoomFactor: cam.zoom?.factor ?? 1
     // Gimbal pose in degrees; positive pan = camera left, positive tilt = up
-    // live pose (follows AI tracking), else the last pose t2l set
+    // live pose (follows AI tracking), else the last pose obsbot4linux set
     readonly property real pan: cam.pose?.pan ?? cam.state?.gimbal?.pan ?? 0
     readonly property real tilt: cam.pose?.tilt ?? cam.state?.gimbal?.tilt ?? 0
     readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
@@ -78,7 +78,7 @@ PluginComponent {
     property bool fineGimbal: false
     readonly property int gimbalStep: fineGimbal ? 1 : 5
 
-    // Label of the command in flight, shown in the header until t2l answers
+    // Label of the command in flight, shown in the header until obsbot4linux answers
     property string pendingLabel: ""
     property int pendingId: 0
     property int requestId: 0
@@ -130,7 +130,7 @@ PluginComponent {
         }
     }
 
-    // Sends `t2l <args>` and flips the UI to `changes` at once
+    // Sends `obsbot4linux <args>` and flips the UI to `changes` at once
     function send(args, label, changes, slider) {
         if (!watch.running)
             return;
@@ -160,7 +160,7 @@ PluginComponent {
             if (msg.id === root.pendingId)
                 root.pendingLabel = "";
             if (msg.ok === false) {
-                console.warn("obsbotControl: t2l:", msg.error);
+                console.warn("obsbotControl: obsbot4linux:", msg.error);
                 // the optimistic change did not happen
                 root.cam = root.truth;
                 root.stateRefreshed();
@@ -205,7 +205,7 @@ PluginComponent {
         root.send(["hdr", on ? "on" : "off"], on ? "Turning HDR on" : "Turning HDR off", { status: { hdr: on } });
     }
 
-    // The camera restarts and drops off USB for ~20 s; t2l reports it unavailable meanwhile
+    // The camera restarts and drops off USB for ~20 s; obsbot4linux reports it unavailable meanwhile
     function factoryReset() {
         root.previewOn = false;
         root.send(["factory-reset", "--yes"], "Resetting to factory settings");
@@ -225,7 +225,7 @@ PluginComponent {
         root.send(["zoom", factor.toFixed(2)], "", { zoom: { factor: factor } }, true);
     }
 
-    // `t2l gimbal` takes an absolute pose in degrees and switches to Static itself
+    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself
     function moveGimbal(newPan, newTilt) {
         const p = Math.max(-130, Math.min(130, newPan));
         const t = Math.max(-90, Math.min(90, newTilt));
@@ -258,7 +258,7 @@ PluginComponent {
     Process {
         id: watch
         // Exit code 127 tells "tool not installed" apart from a daemon or camera problem
-        command: ["sh", "-c", "command -v t2l >/dev/null || exit 127; exec t2l watch"]
+        command: ["sh", "-c", "command -v obsbot4linux >/dev/null || exit 127; exec obsbot4linux watch"]
         running: true
         stdinEnabled: true
         stdout: SplitParser {
