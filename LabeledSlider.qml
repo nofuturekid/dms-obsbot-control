@@ -11,6 +11,8 @@ Column {
     property int minimum: 0
     property int maximum: 100
     property int value: 0
+    // How the value is shown next to the label, e.g. tenths as "2.0×"
+    property var formatValue: v => v + item.unit
     signal moved(int value)
 
     spacing: 2
@@ -32,7 +34,7 @@ Column {
 
         StyledText {
             anchors.right: parent.right
-            text: slider.value + item.unit
+            text: item.formatValue(slider.value)
             color: Theme.surfaceVariantText
             font.pixelSize: Theme.fontSizeSmall
         }

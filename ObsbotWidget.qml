@@ -69,6 +69,45 @@ PluginComponent {
     // Label of the command in flight, shown in the header until the camera confirms
     property string pendingLabel: ""
 
+    // Subcommands of the installed tiny4linux-cli (`--help`). The Lite settings below are
+    // only offered where the CLI has the command, so an older tiny4linux keeps the popout
+    // as it was.
+    property var commands: []
+    function has(name) {
+        return root.commands.indexOf(name) >= 0;
+    }
+    readonly property bool liteAvailable: ["fov", "led", "auto-sleep", "audio", "gesture", "hand", "zone"].some(c => has(c))
+
+    // Settings as `info` reports them, keyed by their English label ("Field of View": "Wide").
+    // Older CLIs print fewer lines; a missing value just leaves its chips unselected.
+    property var lite: ({})
+    function liteValue(key) {
+        return root.lite[key] ?? "";
+    }
+    function setLite(args, label, key, value) {
+        const values = Object.assign({}, root.lite);
+        values[key] = value;
+        root.lite = values;
+        root.run(args, label);
+    }
+
+    // Auto-sleep times offered, the choices of OBSBOT Center; `info` prints "120 s" or
+    // "Off (120 s)" when auto-sleep is off but keeps the time
+    readonly property var autoSleepTimes: [
+        { label: "Off", arg: "off" },
+        { label: "30 s", arg: "30" },
+        { label: "2 min", arg: "120" },
+        { label: "10 min", arg: "600" }
+    ]
+    function autoSleepIndex() {
+        const value = liteValue("Auto-Sleep");
+        if (value === "")
+            return -1;
+        if (value.startsWith("Off"))
+            return 0;
+        return autoSleepTimes.findIndex(t => t.arg + " s" === value);
+    }
+
     // Live preview; holds the camera, so no other app can open it meanwhile
     property bool previewOn: false
     readonly property bool live: available && awake
@@ -190,15 +229,44 @@ PluginComponent {
                     root.aiMode = mode ? mode.label : "";
                     const speed = root.speeds.find(t => t.code === b[0x24]);
                     root.speed = speed ? speed.label : "";
+
+                    // "  🔭  Field of View: Wide": drop the icon, split at the last ": "
+                    // (labels like "Gesture: Zoom" contain one themselves)
+                    const values = {};
+                    for (const line of text.split("\n")) {
+                        const entry = line.replace(/^\s*\S+\s+/, "");
+                        const split = entry.lastIndexOf(": ");
+                        if (line.startsWith("  ") && split > 0)
+                            values[entry.slice(0, split)] = entry.slice(split + 2).trim();
+                    }
+                    root.lite = values;
                 }
                 root.stateRefreshed();
             }
         }
         onExited: exitCode => {
             root.toolMissing = exitCode === 127;
+            if (!root.toolMissing && root.commands.length === 0 && !helpProc.running)
+                helpProc.running = true;
             if (root.refreshPending) {
                 root.refreshPending = false;
                 infoProc.running = true;
+            }
+        }
+    }
+
+    Process {
+        id: helpProc
+        command: ["tiny4linux-cli", "--lang", "en", "--help"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const names = [];
+                for (const line of text.split("\n")) {
+                    const m = line.match(/^  ([a-z][a-z-]*)\s{2,}/);
+                    if (m)
+                        names.push(m[1]);
+                }
+                root.commands = names;
             }
         }
     }
@@ -345,6 +413,50 @@ PluginComponent {
                         ImageSection {
                             width: parent.width
                             height: Math.max(implicitHeight, framing.height + picture.height + parent.spacing)
+                            ctl: root
+                        }
+                    }
+                }
+
+                // Settings of tiny4linux builds that have the Tiny 2 Lite commands; collapsed
+                // by default so the popout keeps its height
+                Row {
+                    width: parent.width
+                    spacing: Theme.spacingM
+                    visible: root.liteAvailable
+
+                    Column {
+                        id: liteLeft
+                        width: (parent.width - parent.spacing) / 2
+                        spacing: Theme.spacingM
+
+                        CameraSection {
+                            width: parent.width
+                            ctl: root
+                        }
+
+                        SleepSection {
+                            width: parent.width
+                            ctl: root
+                        }
+
+                        HandZoneSection {
+                            width: parent.width
+                            ctl: root
+                        }
+                    }
+
+                    Column {
+                        width: parent.width - liteLeft.width - parent.spacing
+                        spacing: Theme.spacingM
+
+                        AudioSection {
+                            width: parent.width
+                            ctl: root
+                        }
+
+                        GestureSection {
+                            width: parent.width
                             ctl: root
                         }
                     }
