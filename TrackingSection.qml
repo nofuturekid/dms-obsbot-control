@@ -2,11 +2,13 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// AI tracking mode and speed
+// AI tracking mode, speed and the hand that hand tracking follows
 SectionCard {
     id: section
 
     property var ctl
+
+    readonly property var sides: ["Left", "Right"]
 
     function modeIndex() {
         return ctl.trackingModes.findIndex(m => m.label === ctl.aiMode);
@@ -33,12 +35,26 @@ SectionCard {
         onSelected: index => section.ctl.setSpeed(index)
     }
 
+    // Greyed out but readable outside hand tracking, so the side that would be tracked shows
+    ChipRow {
+        id: sideRow
+        width: parent.width
+        visible: section.ctl.has("hand")
+        enabled: section.ctl.status.ai_mode === "hand"
+        opacity: enabled ? 1 : 0.38
+        label: "Tracked hand"
+        options: section.sides
+        currentIndex: section.sides.findIndex(s => s.toLowerCase() === section.ctl.tracking.hand_side)
+        onSelected: index => section.ctl.send(["hand", section.sides[index].toLowerCase()], "Tracking the " + section.sides[index].toLowerCase() + " hand", { tracking: { hand_side: section.sides[index].toLowerCase() } })
+    }
+
     // A click assigns currentIndex and breaks the binding; re-sync to the camera state
     Connections {
         target: section.ctl
         function onStateRefreshed() {
             modeChips.currentIndex = section.modeIndex();
             speedRow.sync();
+            sideRow.sync();
         }
     }
 }

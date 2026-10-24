@@ -389,14 +389,6 @@ PluginComponent {
                                 expanded: root.openLeft === "sleep"
                                 onToggleRequested: root.openLeft = expanded ? "" : "sleep"
                             }
-
-                            HandZoneSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openLeft === "handZone"
-                                onToggleRequested: root.openLeft = expanded ? "" : "handZone"
-                            }
                         }
 
                         Column {
