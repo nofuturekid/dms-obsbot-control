@@ -203,24 +203,27 @@ PluginComponent {
         root.controlValues = values;
     }
 
-    // Manual moves only stick without AI tracking, so they switch to Static first
+    // Moves go through `tiny4linux-cli gimbal`, OBSBOT Center's pose command: over V4L2
+    // the camera ignores a target under 1° from the centre while it is further away, so
+    // Center did nothing. The CLI switches to Static itself (manual moves only stick
+    // without AI tracking). Older CLIs without the command keep the V4L2 way.
+    readonly property bool poseCommand: has("gimbal")
+
     function moveGimbal(newPan, newTilt) {
+        root.pan = Math.max(-468000, Math.min(468000, newPan));
+        root.tilt = Math.max(-324000, Math.min(324000, newTilt));
+
+        if (root.poseCommand) {
+            root.aiMode = "Static";
+            Quickshell.execDetached(["tiny4linux-cli", "--lang", "en", "gimbal", "--pan", String(root.pan / 3600), "--tilt", String(root.tilt / 3600)]);
+            return;
+        }
+
         if (root.aiMode !== "Static") {
             root.aiMode = "Static";
             root.run(["tracking", "static"], "Switching to Static");
         }
-        const fromPan = root.pan;
-        const fromTilt = root.tilt;
-        root.pan = Math.max(-468000, Math.min(468000, newPan));
-        root.tilt = Math.max(-324000, Math.min(324000, newTilt));
-
-        // The camera ignores a target under 1° from the centre while it is further away
-        // (Center did nothing); 1° on the side it comes from, then the target, arrives
-        const via = (target, from) => Math.abs(target) < 3600 ? (from < 0 ? -3600 : 3600) : target;
-        const viaPose = "pan_absolute=" + via(root.pan, fromPan) + ",tilt_absolute=" + via(root.tilt, fromTilt);
-        const pose = "pan_absolute=" + root.pan + ",tilt_absolute=" + root.tilt;
-        // One shell, so the two moves cannot overtake each other
-        Quickshell.execDetached(["sh", "-c", "[ \"$2\" = \"$3\" ] || v4l2-ctl -d \"$1\" -c \"$2\"; exec v4l2-ctl -d \"$1\" -c \"$3\"", "sh", root.device, viaPose, pose]);
+        Quickshell.execDetached(["v4l2-ctl", "-d", root.device, "-c", "pan_absolute=" + root.pan + ",tilt_absolute=" + root.tilt]);
     }
 
     function degrees(units) {
@@ -306,8 +309,12 @@ PluginComponent {
                     if (m)
                         values[m[1]] = Number(m[2]);
                 }
-                root.pan = values.pan_absolute ?? 0;
-                root.tilt = values.tilt_absolute ?? 0;
+                // V4L2 does not see moves made with the pose command, so its pan/tilt
+                // would be stale; the widget then keeps the pose it sent itself
+                if (!root.poseCommand) {
+                    root.pan = values.pan_absolute ?? 0;
+                    root.tilt = values.tilt_absolute ?? 0;
+                }
                 root.controlValues = values;
             }
         }
