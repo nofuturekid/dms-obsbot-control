@@ -8,7 +8,7 @@ SectionCard {
 
     property var ctl
 
-    title: "Image adjustments"
+    title: "Image"
     collapsible: true
     summary: (ctl.imageAtDefaults ? "Defaults: " : "") + ctl.imageControls.map(c => c.label + " " + (ctl.image[c.name]?.value ?? "–")).join(" · ")
     enabled: ctl.live
