@@ -28,7 +28,7 @@ The popout follows layout 2a from the Claude Design study: two columns at
 
 Settings page: a tracking mode applied whenever the camera wakes up.
 
-Camera access goes through `obsbot4linux` (OBSBot4Linux, not published yet):
+Camera access goes through `obsbot4linux` (not published yet):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event
 (also changes made from the CLI or by the camera itself) and sends commands on
 its stdin. Desk and Whiteboard tracking are not available with obsbot4linux. The bar pill is hidden while no OBSBOT Tiny 2 Lite
