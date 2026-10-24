@@ -12,7 +12,9 @@ Item {
     property bool checked: false
     signal toggled(bool checked)
 
-    implicitHeight: Math.max(texts.implicitHeight, toggle.implicitHeight)
+    // DToggle sets its height but no implicitHeight; with implicitHeight the row took only
+    // the label's height and stacked switches overlapped the next row
+    implicitHeight: Math.max(texts.implicitHeight, toggle.height)
 
     Column {
         id: texts
