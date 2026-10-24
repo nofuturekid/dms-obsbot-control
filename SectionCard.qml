@@ -5,6 +5,8 @@ import qs.DCommon.Widgets
 // Titled card around one popout section (Preview, Framing, Tracking, Picture).
 // collapsible: the title row toggles the body and shows `summary` while it is closed.
 // flat: no background or padding, for a collapsible group inside another card.
+// controlled: a click on the title only emits toggleRequested and the owner sets `expanded`,
+// so cards can close each other (one open card per column).
 Rectangle {
     id: card
 
@@ -13,6 +15,8 @@ Rectangle {
     property bool collapsible: false
     property bool expanded: true
     property bool flat: false
+    property bool controlled: false
+    signal toggleRequested
     default property alias content: body.data
 
     readonly property real padding: flat ? 0 : Theme.spacingL
@@ -65,7 +69,12 @@ Rectangle {
                 anchors.fill: parent
                 enabled: card.collapsible
                 cursorShape: card.collapsible ? Qt.PointingHandCursor : Qt.ArrowCursor
-                onClicked: card.expanded = !card.expanded
+                onClicked: {
+                    if (card.controlled)
+                        card.toggleRequested();
+                    else
+                        card.expanded = !card.expanded;
+                }
             }
         }
 

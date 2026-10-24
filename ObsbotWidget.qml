@@ -135,6 +135,11 @@ PluginComponent {
         return list.findIndex(m => m.label === label);
     }
 
+    // The open card of each column of Lite settings ("" = all closed); opening one closes
+    // the other in the same column, so the popout stays short
+    property string openLeft: ""
+    property string openRight: ""
+
     property bool refreshPending: false
 
     function refresh() {
@@ -459,16 +464,25 @@ PluginComponent {
                             CameraSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openLeft === "camera"
+                                onToggleRequested: root.openLeft = expanded ? "" : "camera"
                             }
 
                             SleepSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openLeft === "sleep"
+                                onToggleRequested: root.openLeft = expanded ? "" : "sleep"
                             }
 
                             HandZoneSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openLeft === "handZone"
+                                onToggleRequested: root.openLeft = expanded ? "" : "handZone"
                             }
                         }
 
@@ -479,16 +493,25 @@ PluginComponent {
                             AudioSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openRight === "audio"
+                                onToggleRequested: root.openRight = expanded ? "" : "audio"
                             }
 
                             GestureSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openRight === "gestures"
+                                onToggleRequested: root.openRight = expanded ? "" : "gestures"
                             }
 
                             ResetSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openRight === "reset"
+                                onToggleRequested: root.openRight = expanded ? "" : "reset"
                             }
                         }
                     }
