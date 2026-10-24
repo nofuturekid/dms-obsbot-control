@@ -8,14 +8,14 @@ SectionCard {
 
     property var ctl
 
-    // label shown, CLI argument, label printed by `info`
+    // label shown, CLI argument, key in t2l's tracking state
     readonly property var gestures: [
-        { label: "Target lock", arg: "target-lock", key: "Gesture: Target Lock" },
-        { label: "Zoom", arg: "zoom", key: "Gesture: Zoom" },
-        { label: "Dynamic zoom", arg: "dynamic-zoom", key: "Gesture: Dynamic Zoom" },
-        { label: "Direction change", arg: "direction", key: "Gesture: Direction Change" }
+        { label: "Target lock", arg: "target-lock", key: "target_lock" },
+        { label: "Zoom", arg: "zoom", key: "zoom_gesture" },
+        { label: "Dynamic zoom", arg: "dynamic-zoom", key: "dynamic_zoom" },
+        { label: "Direction change", arg: "direction", key: "direction_change" }
     ]
-    readonly property int onCount: gestures.filter(g => ctl.liteValue(g.key) === "On").length
+    readonly property int onCount: gestures.filter(g => ctl.tracking[g.key] === true).length
 
     title: "Gestures"
     collapsible: true
@@ -32,8 +32,8 @@ SectionCard {
             required property var modelData
             width: parent.width
             label: modelData.label
-            checked: section.ctl.liteValue(modelData.key) === "On"
-            onToggled: checked => section.ctl.setLite(["gesture", modelData.arg, checked ? "on" : "off"], (checked ? "Turning on " : "Turning off ") + modelData.label.toLowerCase() + " gesture", modelData.key, checked ? "On" : "Off")
+            checked: section.ctl.tracking[modelData.key] === true
+            onToggled: checked => section.ctl.send(["gesture", "set", modelData.arg, checked ? "on" : "off"], (checked ? "Turning on " : "Turning off ") + modelData.label.toLowerCase() + " gesture", { tracking: { [modelData.key]: checked } })
         }
     }
 
@@ -43,7 +43,7 @@ SectionCard {
         label: "Zoom gesture ratio"
         minimum: 10
         maximum: 40
-        value: Math.round(Number(section.ctl.liteValue("Gesture Zoom Ratio") || 2) * 10)
+        value: Math.round((section.ctl.tracking.gesture_zoom_ratio ?? 2) * 10)
         formatValue: v => (v / 10).toFixed(1) + "×"
         onMoved: value => {
             ratioTimer.ratio = value / 10;
@@ -55,6 +55,6 @@ SectionCard {
         id: ratioTimer
         property real ratio: 2
         interval: 400
-        onTriggered: section.ctl.setLite(["gesture", "zoom-ratio", ratio.toFixed(1)], "Setting zoom gesture ratio to " + ratio.toFixed(1) + "×", "Gesture Zoom Ratio", ratio.toFixed(1))
+        onTriggered: section.ctl.send(["gesture", "zoom-ratio", ratio.toFixed(1)], "Setting zoom gesture ratio to " + ratio.toFixed(1) + "×", { tracking: { gesture_zoom_ratio: ratio } })
     }
 }

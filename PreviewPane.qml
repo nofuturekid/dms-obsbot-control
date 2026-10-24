@@ -14,7 +14,7 @@ SectionCard {
     readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing
     readonly property var hint: !ctl.available
         ? (ctl.toolMissing
-            ? { icon: "terminal", title: "Control tool not found", body: "tiny4linux-cli could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
+            ? { icon: "terminal", title: "Control tool not found", body: "t2l could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
             : { icon: "usb_off", title: "Camera not connected", body: "The Tiny 2 Lite doesn't respond on USB. Plug it back in. The bar icon hides while it is gone.", button: "Retry", buttonIcon: "refresh" })
         : videoMissing
             ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }

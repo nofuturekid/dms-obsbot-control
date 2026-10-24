@@ -27,14 +27,14 @@ SectionCard {
                 id: upButton
                 variant: "tonal"
                 iconName: "keyboard_arrow_up"
-                tooltipText: "Tilt up " + section.ctl.gimbalStepDegrees + "°"
+                tooltipText: "Tilt up " + section.ctl.gimbalStep + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt + section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
-                tooltipText: "Pan left " + section.ctl.gimbalStepDegrees + "°"
+                tooltipText: "Pan left " + section.ctl.gimbalStep + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan + section.ctl.gimbalStep, section.ctl.tilt)
             }
             DIconButton {
@@ -46,14 +46,14 @@ SectionCard {
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_right"
-                tooltipText: "Pan right " + section.ctl.gimbalStepDegrees + "°"
+                tooltipText: "Pan right " + section.ctl.gimbalStep + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.gimbalStep, section.ctl.tilt)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_down"
-                tooltipText: "Tilt down " + section.ctl.gimbalStepDegrees + "°"
+                tooltipText: "Tilt down " + section.ctl.gimbalStep + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt - section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
@@ -74,7 +74,7 @@ SectionCard {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WordWrap
-                text: section.ctl.gimbalStepDegrees + "° per step. Moving switches tracking to Static."
+                text: section.ctl.gimbalStep + "° per step. Moving switches tracking to Static."
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
@@ -92,8 +92,10 @@ SectionCard {
     LabeledSlider {
         width: parent.width
         label: "Zoom"
-        unit: "%"
-        value: section.ctl.controlValues.zoom_absolute ?? 0
-        onMoved: value => section.ctl.setControl("zoom_absolute", value)
+        minimum: 10
+        maximum: 40
+        value: Math.round(section.ctl.zoomFactor * 10)
+        formatValue: v => (v / 10).toFixed(1) + "×"
+        onMoved: value => section.ctl.setZoom(value / 10)
     }
 }

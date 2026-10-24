@@ -14,8 +14,7 @@
   "component": "./ObsbotWidget.qml",
   "settings": "./ObsbotSettings.qml",
   "dependencies": [
-    "tiny4linux-cli",
-    "v4l-utils",
+    "t2l",
     "qt6-multimedia"
   ],
   "permissions": [

@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Field of view, status LED, mirror and invert (tiny4linux with the Lite settings)
+// Field of view, status LED, mirror and invert (t2l)
 SectionCard {
     id: section
 
@@ -11,11 +11,17 @@ SectionCard {
     readonly property var fovs: ["Wide", "Medium", "Narrow"]
     readonly property var leds: ["Off", "1", "2", "3"]
 
+    // "custom" after the zoom was set freely
+    function fovName() {
+        const f = ctl.status.field_of_view ?? "";
+        return f.charAt(0).toUpperCase() + f.slice(1);
+    }
+
     title: "Camera"
     collapsible: true
     expanded: false
     visible: ["fov", "led", "mirror", "invert"].some(c => ctl.has(c))
-    summary: [ctl.liteValue("Field of View"), ctl.liteValue("Status LED") !== "" ? "LED " + ctl.liteValue("Status LED") : ""].filter(s => s !== "").join(" · ")
+    summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : ""].filter(s => s !== "").join(" · ")
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 
@@ -25,8 +31,8 @@ SectionCard {
         visible: section.ctl.has("fov")
         label: "Field of view"
         options: section.fovs
-        currentIndex: section.fovs.indexOf(section.ctl.liteValue("Field of View"))
-        onSelected: index => section.ctl.setLite(["fov", section.fovs[index].toLowerCase()], "Setting field of view to " + section.fovs[index], "Field of View", section.fovs[index])
+        currentIndex: section.fovs.findIndex(f => f.toLowerCase() === section.ctl.status.field_of_view)
+        onSelected: index => section.ctl.send(["fov", section.fovs[index].toLowerCase()], "Setting field of view to " + section.fovs[index], { status: { field_of_view: section.fovs[index].toLowerCase() } })
     }
 
     ChipRow {
@@ -35,16 +41,16 @@ SectionCard {
         visible: section.ctl.has("led")
         label: "Status LED"
         options: section.leds
-        currentIndex: section.leds.indexOf(section.ctl.liteValue("Status LED"))
-        onSelected: index => section.ctl.setLite(["led", section.leds[index].toLowerCase()], "Setting status LED to " + section.leds[index], "Status LED", section.leds[index])
+        currentIndex: section.ctl.status.led ?? -1
+        onSelected: index => section.ctl.send(["led", index], "Setting status LED to " + section.leds[index], { status: { led: index } })
     }
 
     ToggleRow {
         width: parent.width
         visible: section.ctl.has("mirror")
         label: "Mirror image"
-        checked: section.ctl.liteValue("Mirror Image") === "On"
-        onToggled: checked => section.ctl.setLite(["mirror", checked ? "on" : "off"], checked ? "Mirroring image" : "Unmirroring image", "Mirror Image", checked ? "On" : "Off")
+        checked: section.ctl.status.mirror === true
+        onToggled: checked => section.ctl.send(["mirror", checked ? "on" : "off"], checked ? "Mirroring image" : "Unmirroring image", { status: { mirror: checked } })
     }
 
     ToggleRow {
@@ -52,8 +58,8 @@ SectionCard {
         visible: section.ctl.has("invert")
         label: "Invert gimbal"
         description: "Reverses left/right panning"
-        checked: section.ctl.liteValue("Invert View and Gimbal") === "On"
-        onToggled: checked => section.ctl.setLite(["invert", checked ? "on" : "off"], checked ? "Inverting gimbal" : "Restoring gimbal direction", "Invert View and Gimbal", checked ? "On" : "Off")
+        checked: section.ctl.tracking.invert === true
+        onToggled: checked => section.ctl.send(["invert", checked ? "on" : "off"], checked ? "Inverting gimbal" : "Restoring gimbal direction", { tracking: { invert: checked } })
     }
 
     // A click assigns currentIndex and breaks the binding; re-sync to the camera state

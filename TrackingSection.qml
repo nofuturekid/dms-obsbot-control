@@ -8,6 +8,10 @@ SectionCard {
 
     property var ctl
 
+    function modeIndex() {
+        return ctl.trackingModes.findIndex(m => m.label === ctl.aiMode);
+    }
+
     title: "Tracking"
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
@@ -16,7 +20,7 @@ SectionCard {
         id: modeChips
         width: parent.width
         model: section.ctl.trackingModes.map(m => m.label)
-        currentIndex: section.ctl.indexOf(section.ctl.trackingModes, section.ctl.aiMode)
+        currentIndex: section.modeIndex()
         onSelectionChanged: index => section.ctl.setMode(index)
     }
 
@@ -25,7 +29,7 @@ SectionCard {
         width: parent.width
         label: "Speed"
         options: section.ctl.speeds.map(m => m.label)
-        currentIndex: section.ctl.indexOf(section.ctl.speeds, section.ctl.speed)
+        currentIndex: section.ctl.speeds.findIndex(s => s.label === section.ctl.speed)
         onSelected: index => section.ctl.setSpeed(index)
     }
 
@@ -33,7 +37,7 @@ SectionCard {
     Connections {
         target: section.ctl
         function onStateRefreshed() {
-            modeChips.currentIndex = section.ctl.indexOf(section.ctl.trackingModes, section.ctl.aiMode);
+            modeChips.currentIndex = section.modeIndex();
             speedRow.sync();
         }
     }

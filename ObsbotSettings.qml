@@ -17,8 +17,6 @@ PluginSettings {
             { label: "Close-up", value: "close-up" },
             { label: "Headless", value: "headless" },
             { label: "Lower Body", value: "lower-body" },
-            { label: "Desk Mode", value: "desk" },
-            { label: "Whiteboard", value: "whiteboard" },
             { label: "Hand", value: "hand" },
             { label: "Group", value: "group" }
         ]

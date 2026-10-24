@@ -13,7 +13,7 @@ SectionCard {
     title: "Factory reset"
     collapsible: true
     expanded: false
-    visible: ctl.has("factory-reset")
+    visible: ctl.has("factory_reset")
     enabled: ctl.available
     opacity: ctl.available ? 1 : 0.38
     onExpandedChanged: confirming = false

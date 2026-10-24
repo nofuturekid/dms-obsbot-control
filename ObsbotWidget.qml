@@ -9,108 +9,76 @@ import qs.Modules.Plugins
 PluginComponent {
     id: root
 
-    // The status is decoded from the raw state block (`tiny4linux-cli -v info`) because
-    // tiny4linux 2.2.1 decodes it with Tiny 2 offsets: on the Lite the tracking speed sits
-    // at 0x24 (not 0x21) and hand tracking reads (3, 0) (not (6, 0)).
-    // code = [block[0x18], block[0x1c]]
+    // One long-running `t2l watch` is the only link to the camera: its state events are the
+    // only source of truth, commands are requests on its stdin. The UI patches `cam`
+    // optimistically when a command goes out; the next event overwrites the patch.
+
+    // key = ai_mode in t2l's state, arg = `t2l tracking <arg>`
     readonly property var trackingModes: [
-        { label: "Static", arg: "static", code: [0, 0] },
-        { label: "Normal Tracking", arg: "normal", code: [2, 0] },
-        { label: "Upper Body", arg: "upper-body", code: [2, 1] },
-        { label: "Close-up", arg: "close-up", code: [2, 2] },
-        { label: "Headless", arg: "headless", code: [2, 3] },
-        { label: "Lower Body", arg: "lower-body", code: [2, 4] },
-        { label: "Desk Mode", arg: "desk", code: [5, 0] },
-        { label: "Whiteboard", arg: "whiteboard", code: [4, 0] },
-        { label: "Hand", arg: "hand", code: [3, 0] },
-        { label: "Group", arg: "group", code: [1, 0] }
+        { label: "Static", arg: "static", key: "static" },
+        { label: "Normal Tracking", arg: "normal", key: "normal" },
+        { label: "Upper Body", arg: "upper-body", key: "upper_body" },
+        { label: "Close-up", arg: "close-up", key: "close_up" },
+        { label: "Headless", arg: "headless", key: "headless" },
+        { label: "Lower Body", arg: "lower-body", key: "lower_body" },
+        { label: "Hand", arg: "hand", key: "hand" },
+        { label: "Group", arg: "group", key: "group" }
     ]
-    // code = block[0x24]
     readonly property var speeds: [
-        { label: "Standard", arg: "standard", code: 0 },
-        { label: "Sport", arg: "fast", code: 2 }
+        { label: "Standard", arg: "standard" },
+        { label: "Sport", arg: "sport" }
     ]
 
+    // Only used to hide the bar pill while the camera is unplugged
     readonly property string device: "/dev/v4l/by-id/usb-Remo_Tech_Co.__Ltd._OBSBOT_Tiny_2_Lite-video-index0"
 
-    // Exposure mode is not part of the status block, so the last choice is remembered
     readonly property var exposureModes: [
         { label: "Global", arg: "global" },
-        { label: "Face", arg: "face" },
-        { label: "Manual", arg: "manual" }
+        { label: "Face", arg: "face" }
     ]
-    readonly property string exposure: pluginData?.exposure ?? ""
     // Settings page: tracking mode applied whenever the camera wakes up ("" = keep)
     readonly property string wakeTrackingMode: pluginData?.wakeTrackingMode ?? ""
 
-    // UVC controls: name, label, range and camera default (`v4l2-ctl -L`)
+    // UVC controls shown as sliders; range and default come from t2l's image.<name>
     readonly property var imageControls: [
-        { name: "brightness", label: "Brightness", min: 0, max: 100, def: 50 },
-        { name: "contrast", label: "Contrast", min: 0, max: 100, def: 50 },
-        { name: "saturation", label: "Saturation", min: 0, max: 100, def: 50 },
-        { name: "sharpness", label: "Sharpness", min: 0, max: 100, def: 50 },
-        { name: "backlight_compensation", label: "Backlight compensation", min: 0, max: 18, def: 9 }
+        { name: "brightness", label: "Brightness" },
+        { name: "contrast", label: "Contrast" },
+        { name: "saturation", label: "Saturation" },
+        { name: "sharpness", label: "Sharpness" },
+        { name: "backlight_compensation", label: "Backlight compensation" }
     ]
-    property var controlValues: ({})
-    readonly property bool imageAtDefaults: imageControls.every(c => (controlValues[c.name] ?? c.def) === c.def)
-    // Gimbal units are 1/3600 degree; pan +/-130 deg (positive = camera left), tilt +/-90 deg
+
+    // The state object of the last event, with optimistic patches on top
+    property var cam: ({})
+    property var truth: ({})
+    readonly property var status: cam.status ?? ({})
+    readonly property var tracking: cam.tracking ?? ({})
+    readonly property var image: cam.image ?? ({})
+    readonly property real zoomFactor: cam.zoom?.factor ?? 1
+    readonly property string exposure: cam.state?.exposure_mode ?? ""
+    // Gimbal pose in degrees; positive pan = camera left, positive tilt = up
+    readonly property real pan: cam.state?.gimbal?.pan ?? 0
+    readonly property real tilt: cam.state?.gimbal?.tilt ?? 0
+    readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
+
+    property bool toolMissing: false
+    readonly property bool available: cam.available === true
+    readonly property bool awake: available && status.asleep === false
+    readonly property string aiMode: trackingModes.find(m => m.key === status.ai_mode)?.label ?? ""
+    readonly property string speed: speeds.find(s => s.arg === status.tracking_speed)?.label ?? ""
+
+    function has(name) {
+        return (cam.capabilities ?? []).indexOf(name) >= 0;
+    }
+
     // Fine steps: 1° per arrow click instead of 5°
     property bool fineGimbal: false
-    readonly property int gimbalStep: (fineGimbal ? 1 : 5) * 3600
-    readonly property int gimbalStepDegrees: gimbalStep / 3600
-    property int pan: 0
-    property int tilt: 0
+    readonly property int gimbalStep: fineGimbal ? 1 : 5
 
-    property bool available: false
-    property bool toolMissing: false
-    property bool awake: false
-    // Last awake state read from the camera (root.awake is also set optimistically)
-    property bool readAwake: false
-    property bool statusKnown: false
-    property string aiMode: ""
-    property string speed: ""
-    property bool hdr: false
-    // Label of the command in flight, shown in the header until the camera confirms
+    // Label of the command in flight, shown in the header until t2l answers
     property string pendingLabel: ""
-
-    // Subcommands of the installed tiny4linux-cli (`--help`). The Lite settings below are
-    // only offered where the CLI has the command, so an older tiny4linux keeps the popout
-    // as it was.
-    property var commands: []
-    function has(name) {
-        return root.commands.indexOf(name) >= 0;
-    }
-    readonly property bool liteAvailable: ["fov", "led", "auto-sleep", "audio", "gesture", "hand", "zone", "factory-reset"].some(c => has(c))
-
-    // Settings as `info` reports them, keyed by their English label ("Field of View": "Wide").
-    // Older CLIs print fewer lines; a missing value just leaves its chips unselected.
-    property var lite: ({})
-    function liteValue(key) {
-        return root.lite[key] ?? "";
-    }
-    function setLite(args, label, key, value) {
-        const values = Object.assign({}, root.lite);
-        values[key] = value;
-        root.lite = values;
-        root.run(args, label);
-    }
-
-    // Auto-sleep times offered, the choices of OBSBOT Center; `info` prints "120 s" or
-    // "Off (120 s)" when auto-sleep is off but keeps the time
-    readonly property var autoSleepTimes: [
-        { label: "Off", arg: "off" },
-        { label: "30 s", arg: "30" },
-        { label: "2 min", arg: "120" },
-        { label: "10 min", arg: "600" }
-    ]
-    function autoSleepIndex() {
-        const value = liteValue("Auto-Sleep");
-        if (value === "")
-            return -1;
-        if (value.startsWith("Off"))
-            return 0;
-        return autoSleepTimes.findIndex(t => t.arg + " s" === value);
-    }
+    property int pendingId: 0
+    property int requestId: 0
 
     // Live preview; holds the camera, so no other app can open it meanwhile
     property bool previewOn: false
@@ -128,221 +96,190 @@ PluginComponent {
     onInteractionActiveChanged: {
         if (!interactionActive)
             previewOn = false;
-        else if (!controlsProc.running)
-            controlsProc.running = true;
     }
 
     signal stateRefreshed
-
-    function indexOf(list, label) {
-        return list.findIndex(m => m.label === label);
-    }
 
     // The open card of each column of Lite settings ("" = all closed); opening one closes
     // the other in the same column, so the popout stays short
     property string openLeft: ""
     property string openRight: ""
 
-    property bool refreshPending: false
-
-    function refresh() {
-        if (infoProc.running)
-            refreshPending = true;
-        else
-            infoProc.running = true;
+    // changes: { group: { key: value } }; in "image" the value goes into <control>.value
+    function patch(changes) {
+        const s = Object.assign({}, root.cam);
+        for (const group in changes) {
+            s[group] = Object.assign({}, s[group]);
+            for (const key in changes[group])
+                s[group][key] = group === "image" ? Object.assign({}, s.image[key], { value: changes[group][key] }) : changes[group][key];
+        }
+        root.cam = s;
     }
 
-    // Callers set the expected state first so the UI reacts at once; the camera needs
-    // ~0.5 s before its status block shows a change, hence the second read via settleTimer.
-    function run(args, label) {
-        root.pendingLabel = label ?? "";
-        actionProc.command = ["tiny4linux-cli", "--lang", "en"].concat(args);
-        actionProc.running = true;
+    // Sliders: events that arrive while the user is still dragging would pull the handle
+    // back, so image and zoom of the state stay as dragged until the drag has rested.
+    Timer {
+        id: dragHold
+        interval: 500
+        onTriggered: {
+            root.cam = root.truth;
+            root.stateRefreshed();
+        }
+    }
+
+    // Sends `t2l <args>` and flips the UI to `changes` at once
+    function send(args, label, changes, slider) {
+        if (!watch.running)
+            return;
+        if (changes)
+            root.patch(changes);
+        if (slider)
+            dragHold.restart();
+        const id = ++root.requestId;
+        if (label) {
+            root.pendingId = id;
+            root.pendingLabel = label;
+        }
+        watch.write(JSON.stringify({ id: id, args: args.map(String) }) + "\n");
+        root.stateRefreshed();
+    }
+
+    function handleLine(line) {
+        let msg;
+        try {
+            msg = JSON.parse(line);
+        } catch (e) {
+            return;
+        }
+        if (msg.event === "state") {
+            root.onState(msg.state);
+        } else if (msg.id !== undefined) {
+            if (msg.id === root.pendingId)
+                root.pendingLabel = "";
+            if (msg.ok === false) {
+                console.warn("obsbotControl: t2l:", msg.error);
+                // the optimistic change did not happen
+                root.cam = root.truth;
+                root.stateRefreshed();
+            }
+        }
+    }
+
+    function onState(next) {
+        const was = root.truth.status?.asleep;
+        root.truth = next;
+        if (dragHold.running) {
+            const s = Object.assign({}, next);
+            s.image = root.cam.image;
+            s.zoom = root.cam.zoom;
+            root.cam = s;
+        } else {
+            root.cam = next;
+        }
+        // Only on a real asleep -> awake change seen in events, not on the first state after a DMS start
+        if (was === true && next.status?.asleep === false && root.wakeTrackingMode !== "")
+            root.send(["tracking", root.wakeTrackingMode]);
         root.stateRefreshed();
     }
 
     function setAwake(on) {
-        root.awake = on;
         if (!on)
             root.previewOn = false;
-        root.run([on ? "wake" : "sleep"], on ? "Waking camera" : "Stowing lens");
+        root.send([on ? "wake" : "sleep"], on ? "Waking camera" : "Stowing lens", { status: { asleep: !on } });
     }
 
     function setMode(index) {
         const mode = root.trackingModes[index];
-        root.aiMode = mode.label;
-        root.run(["tracking", mode.arg], "Switching to " + mode.label);
+        root.send(["tracking", mode.arg], "Switching to " + mode.label, { status: { ai_mode: mode.key } });
     }
 
     function setSpeed(index) {
-        root.speed = root.speeds[index].label;
-        root.run(["speed", root.speeds[index].arg], "Setting speed to " + root.speed);
+        const speed = root.speeds[index];
+        root.send(["speed", speed.arg], "Setting speed to " + speed.label, { status: { tracking_speed: speed.arg } });
     }
 
     function setHdr(on) {
-        root.hdr = on;
-        root.run(["hdr", on ? "on" : "off"], on ? "Turning HDR on" : "Turning HDR off");
+        root.send(["hdr", on ? "on" : "off"], on ? "Turning HDR on" : "Turning HDR off", { status: { hdr: on } });
     }
 
-    // The camera restarts and drops off USB for ~20 s; the regular refresh picks it up again
+    // The camera restarts and drops off USB for ~20 s; t2l reports it unavailable meanwhile
     function factoryReset() {
         root.previewOn = false;
-        root.run(["factory-reset", "--yes"], "Resetting to factory settings");
+        root.send(["factory-reset", "--yes"], "Resetting to factory settings");
     }
 
     function setExposure(index) {
         const mode = root.exposureModes[index];
-        pluginService?.savePluginData(pluginId, "exposure", mode.arg);
-        root.run(["exposure", mode.arg], "Setting exposure to " + mode.label);
+        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, { state: { exposure_mode: mode.arg } });
     }
 
     function setControl(name, value) {
-        Quickshell.execDetached(["v4l2-ctl", "-d", root.device, "-c", name + "=" + value]);
-        const values = Object.assign({}, root.controlValues);
-        values[name] = value;
-        root.controlValues = values;
+        root.send(["image", name, value], "", { image: { [name]: value } }, true);
     }
 
-    // Moves go through `tiny4linux-cli gimbal`, OBSBOT Center's pose command: over V4L2
-    // the camera ignores a target under 1° from the centre while it is further away, so
-    // Center did nothing. The CLI switches to Static itself (manual moves only stick
-    // without AI tracking). Older CLIs without the command keep the V4L2 way.
-    readonly property bool poseCommand: has("gimbal")
+    function setZoom(factor) {
+        root.send(["zoom", factor.toFixed(1)], "", { zoom: { factor: factor } }, true);
+    }
 
+    // `t2l gimbal` takes an absolute pose in degrees and switches to Static itself
     function moveGimbal(newPan, newTilt) {
-        root.pan = Math.max(-468000, Math.min(468000, newPan));
-        root.tilt = Math.max(-324000, Math.min(324000, newTilt));
-
-        if (root.poseCommand) {
-            root.aiMode = "Static";
-            Quickshell.execDetached(["tiny4linux-cli", "--lang", "en", "gimbal", "--pan", String(root.pan / 3600), "--tilt", String(root.tilt / 3600)]);
-            return;
-        }
-
-        if (root.aiMode !== "Static") {
-            root.aiMode = "Static";
-            root.run(["tracking", "static"], "Switching to Static");
-        }
-        Quickshell.execDetached(["v4l2-ctl", "-d", root.device, "-c", "pan_absolute=" + root.pan + ",tilt_absolute=" + root.tilt]);
+        const p = Math.max(-130, Math.min(130, newPan));
+        const t = Math.max(-90, Math.min(90, newTilt));
+        root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, status: { ai_mode: "static" } });
     }
 
-    function degrees(units) {
-        const d = Math.round(units / 3600);
-        return (d > 0 ? "+" : d < 0 ? "−" : "") + Math.abs(d) + "°";
+    function degrees(d) {
+        const r = Math.round(d);
+        return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r) + "°";
+    }
+
+    // Auto-sleep times offered, the choices of OBSBOT Center
+    readonly property var autoSleepTimes: [
+        { label: "Off", arg: "off" },
+        { label: "30 s", arg: "30" },
+        { label: "2 min", arg: "120" },
+        { label: "10 min", arg: "600" }
+    ]
+    function autoSleepIndex() {
+        if (status.auto_sleep_enabled === undefined)
+            return -1;
+        if (!status.auto_sleep_enabled)
+            return 0;
+        return autoSleepTimes.findIndex(t => t.arg === String(status.auto_sleep_seconds));
     }
 
     visibilityCommand: "test -e " + device
     visibilityInterval: 5
 
     Process {
-        id: infoProc
-        // Exit code 127 tells "tool not installed" apart from "camera not reachable"
-        command: ["sh", "-c", "command -v tiny4linux-cli >/dev/null || exit 127; exec tiny4linux-cli --lang en -v info"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const m = text.match(/Current state: \[([0-9, ]+)\]/);
-                const b = m ? m[1].split(",").map(Number) : [];
-                root.available = b.length > 0x24;
-                if (root.available) {
-                    const nowAwake = b[0x02] === 0;
-                    // Only on a real sleep -> awake change, not on the first read after a DMS start
-                    if (nowAwake && root.statusKnown && !root.readAwake && root.wakeTrackingMode !== "")
-                        root.run(["tracking", root.wakeTrackingMode]);
-                    root.readAwake = nowAwake;
-                    root.statusKnown = true;
-                    root.awake = nowAwake;
-                    root.hdr = b[0x06] !== 0;
-                    const mode = root.trackingModes.find(t => t.code[0] === b[0x18] && t.code[1] === b[0x1c]);
-                    root.aiMode = mode ? mode.label : "";
-                    const speed = root.speeds.find(t => t.code === b[0x24]);
-                    root.speed = speed ? speed.label : "";
-
-                    // "  🔭  Field of View: Wide": drop the icon, split at the last ": "
-                    // (labels like "Gesture: Zoom" contain one themselves)
-                    const values = {};
-                    for (const line of text.split("\n")) {
-                        const entry = line.replace(/^\s*\S+\s+/, "");
-                        const split = entry.lastIndexOf(": ");
-                        if (line.startsWith("  ") && split > 0)
-                            values[entry.slice(0, split)] = entry.slice(split + 2).trim();
-                    }
-                    root.lite = values;
-                }
-                root.stateRefreshed();
-            }
+        id: watch
+        // Exit code 127 tells "tool not installed" apart from a daemon or camera problem
+        command: ["sh", "-c", "command -v t2l >/dev/null || exit 127; exec t2l watch"]
+        running: true
+        stdinEnabled: true
+        stdout: SplitParser {
+            onRead: line => root.handleLine(line)
         }
         onExited: exitCode => {
             root.toolMissing = exitCode === 127;
-            if (!root.toolMissing && root.commands.length === 0 && !helpProc.running)
-                helpProc.running = true;
-            if (root.refreshPending) {
-                root.refreshPending = false;
-                infoProc.running = true;
-            }
-        }
-    }
-
-    Process {
-        id: helpProc
-        command: ["tiny4linux-cli", "--lang", "en", "--help"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const names = [];
-                for (const line of text.split("\n")) {
-                    const m = line.match(/^  ([a-z][a-z-]*)\s{2,}/);
-                    if (m)
-                        names.push(m[1]);
-                }
-                root.commands = names;
-            }
-        }
-    }
-
-    Process {
-        id: controlsProc
-        command: ["v4l2-ctl", "-d", root.device, "-C", root.imageControls.map(c => c.name).concat(["zoom_absolute", "pan_absolute", "tilt_absolute"]).join(",")]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const values = {};
-                for (const line of text.split("\n")) {
-                    const m = line.match(/^(\w+):\s*(-?\d+)/);
-                    if (m)
-                        values[m[1]] = Number(m[2]);
-                }
-                // V4L2 does not see moves made with the pose command, so its pan/tilt
-                // would be stale; the widget then keeps the pose it sent itself
-                if (!root.poseCommand) {
-                    root.pan = values.pan_absolute ?? 0;
-                    root.tilt = values.tilt_absolute ?? 0;
-                }
-                root.controlValues = values;
-            }
-        }
-    }
-
-    Process {
-        id: actionProc
-        onExited: {
-            root.refresh();
-            settleTimer.restart();
-        }
-    }
-
-    Timer {
-        id: settleTimer
-        interval: 1500
-        onTriggered: {
+            root.cam = ({});
+            root.truth = ({});
             root.pendingLabel = "";
-            root.refresh();
+            root.stateRefreshed();
+            restartTimer.restart();
         }
     }
 
     Timer {
-        interval: 10000
-        running: root.surfaceLive
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.refresh()
+        id: restartTimer
+        interval: root.toolMissing ? 10000 : 2000
+        onTriggered: watch.running = true
+    }
+
+    // Retry button: start the watcher again now
+    function refresh() {
+        if (!watch.running)
+            watch.running = true;
     }
 
     // Layout 1b, static: always two columns (picture | behaviour); the preview area stays
@@ -383,10 +320,7 @@ PluginComponent {
         PopoutComponent {
             id: popout
 
-            Component.onCompleted: {
-                root.refresh();
-                controlsProc.running = true;
-            }
+            Component.onCompleted: root.refresh()
 
             // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
             // and the header stays in place
@@ -468,12 +402,11 @@ PluginComponent {
                         }
                     }
 
-                    // Settings of tiny4linux builds that have the Tiny 2 Lite commands; collapsed
-                    // by default so the popout keeps its height
+                    // Lite settings, collapsed by default so the popout keeps its height
                     Row {
                         width: parent.width
                         spacing: Theme.spacingM
-                        visible: root.liteAvailable
+                        visible: root.has("fov")
 
                         Column {
                             id: liteLeft

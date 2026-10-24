@@ -5,7 +5,7 @@ DankMaterialShell bar widget for the OBSBOT Tiny 2 Lite webcam.
 ![Popout with the preview off](assets/screenshot.png)
 
 Only the **Tiny 2 Lite** is supported: the widget finds the camera by its
-`/dev/v4l/by-id` name and decodes the Lite's status block. Other OBSBOT models
+`/dev/v4l/by-id` name and controls it through t2l. Other OBSBOT models
 are not detected.
 
 The popout follows layout 2a from the Claude Design study: two columns at
@@ -16,11 +16,11 @@ The popout follows layout 2a from the Claude Design study: two columns at
 - preview frame (16:9, Qt Multimedia at 720p): live picture while the preview
   runs (no other app can use the camera meanwhile; it stops when the popout
   closes), otherwise a hint with one action: Start preview, Wake camera, or
-  Retry when the camera or tiny4linux-cli can't be reached
+  Retry when the camera or t2l can't be reached
 - AI tracking mode and speed
 - framing: pan/tilt d-pad and center, zoom; a manual move switches tracking to
   Static
-- HDR, exposure Global/Face/Manual (remembered, the camera does not report it)
+- HDR, exposure Global/Face (remembered, the camera does not report it)
 - image adjustments: brightness, contrast, saturation, sharpness, backlight
   compensation, reset to defaults
 - bar icon: videocam (accent) awake, videocam_off asleep, a dot while the
@@ -28,16 +28,15 @@ The popout follows layout 2a from the Claude Design study: two columns at
 
 Settings page: a tracking mode applied whenever the camera wakes up.
 
-Camera access goes through `tiny4linux-cli` (AUR `tiny4linux-cli`) and
-`v4l2-ctl` (`v4l-utils`). The widget polls `tiny4linux-cli -v info` every 10 s
-while the bar is visible and decodes the raw state block itself, because
-tiny4linux 2.2.1 reads tracking speed and hand mode with Tiny 2 offsets
-(OpenFoxes/Tiny4Linux#172). The bar pill is hidden while no OBSBOT Tiny 2 Lite
+Camera access goes through [`t2l`](https://github.com/nofuturekid/Tiny2Lite4Linux):
+the widget keeps one `t2l watch` running, gets every state change as an event
+(also changes made from the CLI or by the camera itself) and sends commands on
+its stdin. Desk and Whiteboard tracking are not available with t2l. The bar pill is hidden while no OBSBOT Tiny 2 Lite
 is plugged in.
 
 ## Install
 
-Needs `tiny4linux-cli` (AUR) and `v4l2-ctl` (`v4l-utils`). The live preview
+Needs `t2l` on PATH. The live preview
 also needs `qt6-multimedia`; without it the preview frame says so and every
 other control still works.
 

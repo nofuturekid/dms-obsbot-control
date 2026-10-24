@@ -52,9 +52,9 @@ Rectangle {
                 required property var modelData
                 width: parent.width
                 label: modelData.label
-                minimum: modelData.min
-                maximum: modelData.max
-                value: section.ctl.controlValues[modelData.name] ?? modelData.def
+                minimum: section.ctl.image[modelData.name]?.min ?? 0
+                maximum: section.ctl.image[modelData.name]?.max ?? 100
+                value: section.ctl.image[modelData.name]?.value ?? 0
                 onMoved: value => section.ctl.setControl(modelData.name, value)
             }
         }
@@ -67,6 +67,6 @@ Rectangle {
         anchors.margins: section.padding
         text: "Reset to defaults"
         iconName: "restart_alt"
-        onClicked: section.ctl.imageControls.forEach(c => section.ctl.setControl(c.name, c.def))
+        onClicked: section.ctl.imageControls.forEach(c => section.ctl.setControl(c.name, section.ctl.image[c.name]?.default ?? 0))
     }
 }

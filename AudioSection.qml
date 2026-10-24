@@ -15,7 +15,7 @@ SectionCard {
     collapsible: true
     expanded: false
     visible: ctl.has("audio")
-    summary: ctl.liteValue("Noise Reduction") !== "" ? "Noise reduction " + ctl.liteValue("Noise Reduction").toLowerCase() : ""
+    summary: ctl.status.noise_reduction ? "Noise reduction " + ctl.status.noise_reduction : ""
     enabled: ctl.live
     opacity: ctl.live ? 1 : 0.38
 
@@ -25,8 +25,8 @@ SectionCard {
         label: "Noise reduction"
         stacked: true
         options: section.levels
-        currentIndex: section.levels.indexOf(section.ctl.liteValue("Noise Reduction"))
-        onSelected: index => section.ctl.setLite(["audio", "noise-reduction", section.levels[index].toLowerCase()], "Setting noise reduction to " + section.levels[index], "Noise Reduction", section.levels[index])
+        currentIndex: section.levels.findIndex(l => l.toLowerCase() === section.ctl.status.noise_reduction)
+        onSelected: index => section.ctl.send(["audio", "noise", section.levels[index].toLowerCase()], "Setting noise reduction to " + section.levels[index], { status: { noise_reduction: section.levels[index].toLowerCase() } })
     }
 
     ChipRow {
@@ -34,22 +34,22 @@ SectionCard {
         width: parent.width
         label: "Pickup distance"
         options: section.distances
-        currentIndex: section.distances.indexOf(section.ctl.liteValue("Pickup Distance"))
-        onSelected: index => section.ctl.setLite(["audio", "pickup-distance", section.distances[index].toLowerCase()], "Setting pickup distance to " + section.distances[index], "Pickup Distance", section.distances[index])
+        currentIndex: section.distances.findIndex(d => d.toLowerCase() === section.ctl.status.pickup_distance)
+        onSelected: index => section.ctl.send(["audio", "distance", section.distances[index].toLowerCase()], "Setting pickup distance to " + section.distances[index], { status: { pickup_distance: section.distances[index].toLowerCase() } })
     }
 
     ToggleRow {
         width: parent.width
         label: "Automatic gain"
-        checked: section.ctl.liteValue("Automatic Gain") === "On"
-        onToggled: checked => section.ctl.setLite(["audio", "auto-gain", checked ? "on" : "off"], checked ? "Turning automatic gain on" : "Turning automatic gain off", "Automatic Gain", checked ? "On" : "Off")
+        checked: section.ctl.status.auto_gain === true
+        onToggled: checked => section.ctl.send(["audio", "gain", checked ? "on" : "off"], checked ? "Turning automatic gain on" : "Turning automatic gain off", { status: { auto_gain: checked } })
     }
 
     ToggleRow {
         width: parent.width
         label: "Microphone while asleep"
-        checked: section.ctl.liteValue("Microphone while asleep") === "On"
-        onToggled: checked => section.ctl.setLite(["audio", "mic-in-sleep", checked ? "on" : "off"], checked ? "Keeping the microphone on while asleep" : "Muting the microphone while asleep", "Microphone while asleep", checked ? "On" : "Off")
+        checked: section.ctl.status.mic_in_sleep === true
+        onToggled: checked => section.ctl.send(["audio", "sleep-mic", checked ? "on" : "off"], checked ? "Keeping the microphone on while asleep" : "Muting the microphone while asleep", { status: { mic_in_sleep: checked } })
     }
 
     Connections {

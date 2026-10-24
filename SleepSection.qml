@@ -13,8 +13,8 @@ SectionCard {
     title: "Sleep"
     collapsible: true
     expanded: false
-    visible: ctl.has("auto-sleep") || ctl.has("sleep-background")
-    summary: ctl.liteValue("Auto-Sleep")
+    visible: ctl.has("auto_sleep") || ctl.has("sleep_background")
+    summary: ctl.status.auto_sleep_enabled === undefined ? "" : (ctl.status.auto_sleep_enabled ? ctl.status.auto_sleep_seconds + " s" : "Off")
     // Unlike the other settings these matter (and work) while the camera is asleep
     enabled: ctl.available
     opacity: ctl.available ? 1 : 0.38
@@ -22,27 +22,26 @@ SectionCard {
     ChipRow {
         id: autoSleepRow
         width: parent.width
-        visible: section.ctl.has("auto-sleep")
+        visible: section.ctl.has("auto_sleep")
         label: "Auto-sleep"
         stacked: true
         options: section.ctl.autoSleepTimes.map(t => t.label)
         currentIndex: section.ctl.autoSleepIndex()
         onSelected: index => {
             const time = section.ctl.autoSleepTimes[index];
-            // "off" keeps the configured time, as `info` then shows "Off (… s)"
-            const shown = index === 0 ? "Off" : time.arg + " s";
-            section.ctl.setLite(["auto-sleep", time.arg], "Setting auto-sleep to " + time.label, "Auto-Sleep", shown);
+            // "off" keeps the configured time
+            section.ctl.send(["auto-sleep", time.arg], "Setting auto-sleep to " + time.label, { status: index === 0 ? { auto_sleep_enabled: false } : { auto_sleep_enabled: true, auto_sleep_seconds: Number(time.arg) } });
         }
     }
 
     ChipRow {
         id: backgroundRow
         width: parent.width
-        visible: section.ctl.has("sleep-background")
+        visible: section.ctl.has("sleep_background")
         label: "While asleep"
         options: section.backgrounds
-        currentIndex: section.backgrounds.indexOf(section.ctl.liteValue("Sleep Background"))
-        onSelected: index => section.ctl.setLite(["sleep-background", section.backgrounds[index].toLowerCase()], "Setting sleep background to " + section.backgrounds[index], "Sleep Background", section.backgrounds[index])
+        currentIndex: section.backgrounds.findIndex(b => b.toLowerCase() === section.ctl.status.sleep_background)
+        onSelected: index => section.ctl.send(["sleep-background", section.backgrounds[index].toLowerCase()], "Setting sleep background to " + section.backgrounds[index], { status: { sleep_background: section.backgrounds[index].toLowerCase() } })
     }
 
     Connections {
