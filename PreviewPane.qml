@@ -2,13 +2,15 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Preview switch and a fixed 16:9 frame: live video while the preview runs, otherwise a
+// Fixed 16:9 frame: live video while the preview runs, otherwise a
 // hint with one action (start preview, wake camera, retry when not reachable). Hovering the
 // running video shows the same kind of hint over it, with a button to stop the preview.
 SectionCard {
     id: pane
 
     property var ctl
+
+    title: "Preview"
 
     // Without qt6-multimedia PreviewVideo.qml fails to load; the frame then says so
     readonly property bool videoMissing: videoLoader.status === Loader.Error
@@ -37,17 +39,6 @@ SectionCard {
             ctl.setAwake(true);
         else
             ctl.previewOn = true;
-    }
-
-    ToggleRow {
-        width: parent.width
-        enabled: pane.ctl.live
-        opacity: pane.ctl.live ? 1 : 0.38
-        label: "Preview"
-        // Same length either way, so switching doesn't reflow the card and move the picture
-        description: pane.ctl.previewOn ? "Camera blocked for other apps" : "Camera free for other apps"
-        checked: pane.ctl.previewOn
-        onToggled: checked => pane.ctl.previewOn = checked
     }
 
     Rectangle {
