@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import Quickshell.Io
 import qs.Common
@@ -363,112 +364,132 @@ PluginComponent {
                 controlsProc.running = true;
             }
 
-            Column {
+            // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
+            // and the header stays in place
+            readonly property real maxBodyHeight: Math.round(Screen.height * 0.85) - header.height - Theme.spacingM
+
+            HeaderBar {
+                id: header
                 width: parent.width
-                spacing: Theme.spacingM
+                ctl: root
+            }
 
-                HeaderBar {
-                    width: parent.width
-                    ctl: root
-                }
+            Item {
+                width: parent.width
+                height: Theme.spacingM
+            }
 
-                // Layout 2a: same two columns in every state, so the panel never jumps.
-                // Rows: Preview | Tracking (same height), then Framing + Picture | Image.
-                Row {
-                    width: parent.width
+            DFlickable {
+                id: body
+                width: parent.width
+                height: Math.min(bodyColumn.implicitHeight, popout.maxBodyHeight)
+                contentWidth: width
+                contentHeight: bodyColumn.implicitHeight
+                clip: true
+
+                Column {
+                    id: bodyColumn
+                    width: body.width
                     spacing: Theme.spacingM
 
-                    readonly property real topRowHeight: Math.max(preview.implicitHeight, tracking.implicitHeight)
-
-                    Column {
-                        id: leftColumn
-                        width: (parent.width - parent.spacing) / 2
+                    // Layout 2a: same two columns in every state, so the panel never jumps.
+                    // Rows: Preview | Tracking (same height), then Framing + Picture | Image.
+                    Row {
+                        width: parent.width
                         spacing: Theme.spacingM
 
-                        PreviewPane {
-                            id: preview
-                            width: parent.width
-                            height: parent.parent.topRowHeight
-                            ctl: root
+                        readonly property real topRowHeight: Math.max(preview.implicitHeight, tracking.implicitHeight)
+
+                        Column {
+                            id: leftColumn
+                            width: (parent.width - parent.spacing) / 2
+                            spacing: Theme.spacingM
+
+                            PreviewPane {
+                                id: preview
+                                width: parent.width
+                                height: parent.parent.topRowHeight
+                                ctl: root
+                            }
+
+                            FramingSection {
+                                id: framing
+                                width: parent.width
+                                ctl: root
+                            }
+
+                            PictureSection {
+                                id: picture
+                                width: parent.width
+                                ctl: root
+                            }
                         }
 
-                        FramingSection {
-                            id: framing
-                            width: parent.width
-                            ctl: root
-                        }
+                        Column {
+                            width: parent.width - leftColumn.width - parent.spacing
+                            spacing: Theme.spacingM
 
-                        PictureSection {
-                            id: picture
-                            width: parent.width
-                            ctl: root
+                            TrackingSection {
+                                id: tracking
+                                width: parent.width
+                                height: parent.parent.topRowHeight
+                                ctl: root
+                            }
+
+                            ImageSection {
+                                width: parent.width
+                                height: Math.max(implicitHeight, framing.height + picture.height + parent.spacing)
+                                ctl: root
+                            }
                         }
                     }
 
-                    Column {
-                        width: parent.width - leftColumn.width - parent.spacing
+                    // Settings of tiny4linux builds that have the Tiny 2 Lite commands; collapsed
+                    // by default so the popout keeps its height
+                    Row {
+                        width: parent.width
                         spacing: Theme.spacingM
+                        visible: root.liteAvailable
 
-                        TrackingSection {
-                            id: tracking
-                            width: parent.width
-                            height: parent.parent.topRowHeight
-                            ctl: root
+                        Column {
+                            id: liteLeft
+                            width: (parent.width - parent.spacing) / 2
+                            spacing: Theme.spacingM
+
+                            CameraSection {
+                                width: parent.width
+                                ctl: root
+                            }
+
+                            SleepSection {
+                                width: parent.width
+                                ctl: root
+                            }
+
+                            HandZoneSection {
+                                width: parent.width
+                                ctl: root
+                            }
                         }
 
-                        ImageSection {
-                            width: parent.width
-                            height: Math.max(implicitHeight, framing.height + picture.height + parent.spacing)
-                            ctl: root
-                        }
-                    }
-                }
+                        Column {
+                            width: parent.width - liteLeft.width - parent.spacing
+                            spacing: Theme.spacingM
 
-                // Settings of tiny4linux builds that have the Tiny 2 Lite commands; collapsed
-                // by default so the popout keeps its height
-                Row {
-                    width: parent.width
-                    spacing: Theme.spacingM
-                    visible: root.liteAvailable
+                            AudioSection {
+                                width: parent.width
+                                ctl: root
+                            }
 
-                    Column {
-                        id: liteLeft
-                        width: (parent.width - parent.spacing) / 2
-                        spacing: Theme.spacingM
+                            GestureSection {
+                                width: parent.width
+                                ctl: root
+                            }
 
-                        CameraSection {
-                            width: parent.width
-                            ctl: root
-                        }
-
-                        SleepSection {
-                            width: parent.width
-                            ctl: root
-                        }
-
-                        HandZoneSection {
-                            width: parent.width
-                            ctl: root
-                        }
-                    }
-
-                    Column {
-                        width: parent.width - liteLeft.width - parent.spacing
-                        spacing: Theme.spacingM
-
-                        AudioSection {
-                            width: parent.width
-                            ctl: root
-                        }
-
-                        GestureSection {
-                            width: parent.width
-                            ctl: root
-                        }
-
-                        ResetSection {
-                            width: parent.width
-                            ctl: root
+                            ResetSection {
+                                width: parent.width
+                                ctl: root
+                            }
                         }
                     }
                 }
