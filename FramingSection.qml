@@ -92,10 +92,11 @@ SectionCard {
     LabeledSlider {
         width: parent.width
         label: "Zoom"
-        minimum: 10
-        maximum: 40
-        value: Math.round(section.ctl.zoomFactor * 10)
-        formatValue: v => (v / 10).toFixed(1) + "×"
-        onMoved: value => section.ctl.setZoom(value / 10)
+        // hundredths, so the field of view levels (1.15×, 1.47×) show exactly
+        minimum: 100
+        maximum: 400
+        value: Math.round(section.ctl.zoomFactor * 100)
+        formatValue: v => (v / 100).toFixed(2) + "×"
+        onMoved: value => section.ctl.setZoom(value / 100)
     }
 }

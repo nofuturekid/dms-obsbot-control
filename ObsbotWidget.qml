@@ -222,7 +222,7 @@ PluginComponent {
     }
 
     function setZoom(factor) {
-        root.send(["zoom", factor.toFixed(1)], "", { zoom: { factor: factor } }, true);
+        root.send(["zoom", factor.toFixed(2)], "", { zoom: { factor: factor } }, true);
     }
 
     // `t2l gimbal` takes an absolute pose in degrees and switches to Static itself
