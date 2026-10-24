@@ -2,8 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Image adjustments (UVC controls) with the reset button at the bottom; the open card of the
-// right column at first
+// Image adjustments (UVC controls) with the reset button at the bottom
 SectionCard {
     id: section
 

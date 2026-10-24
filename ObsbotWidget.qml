@@ -105,7 +105,7 @@ PluginComponent {
     // The open card of each column of Lite settings ("" = all closed); opening one closes
     // the other in the same column, so the popout stays short
     property string openLeft: ""
-    property string openRight: "image"
+    property string openRight: ""
 
     // changes: { group: { key: value } }; in "image" the value goes into <control>.value
     function patch(changes) {
