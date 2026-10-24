@@ -374,11 +374,6 @@ PluginComponent {
                                 ctl: root
                             }
 
-                            PictureSection {
-                                width: parent.width
-                                ctl: root
-                            }
-
                             CameraSection {
                                 width: parent.width
                                 ctl: root
@@ -409,6 +404,11 @@ PluginComponent {
                             spacing: Theme.spacingM
 
                             TrackingSection {
+                                width: parent.width
+                                ctl: root
+                            }
+
+                            PictureSection {
                                 width: parent.width
                                 ctl: root
                             }
