@@ -33,6 +33,8 @@ Item {
 
     DFilterChips {
         id: chips
+        // the selected chip is marked by its colour only; a check mark would widen it
+        showCheck: false
         anchors.left: row.stacked ? parent.left : labelText.right
         anchors.leftMargin: row.stacked ? 0 : Theme.spacingS
         anchors.right: parent.right

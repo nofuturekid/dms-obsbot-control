@@ -20,6 +20,8 @@ SectionCard {
 
     DFilterChips {
         id: modeChips
+        // the selected chip is marked by its colour only; a check mark would widen it
+        showCheck: false
         width: parent.width
         model: section.ctl.trackingModes.map(m => m.label)
         currentIndex: section.modeIndex()
