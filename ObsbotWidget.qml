@@ -76,7 +76,7 @@ PluginComponent {
     function has(name) {
         return root.commands.indexOf(name) >= 0;
     }
-    readonly property bool liteAvailable: ["fov", "led", "auto-sleep", "audio", "gesture", "hand", "zone"].some(c => has(c))
+    readonly property bool liteAvailable: ["fov", "led", "auto-sleep", "audio", "gesture", "hand", "zone", "factory-reset"].some(c => has(c))
 
     // Settings as `info` reports them, keyed by their English label ("Field of View": "Wide").
     // Older CLIs print fewer lines; a missing value just leaves its chips unselected.
@@ -173,6 +173,12 @@ PluginComponent {
     function setHdr(on) {
         root.hdr = on;
         root.run(["hdr", on ? "on" : "off"], on ? "Turning HDR on" : "Turning HDR off");
+    }
+
+    // The camera restarts and drops off USB for ~20 s; the regular refresh picks it up again
+    function factoryReset() {
+        root.previewOn = false;
+        root.run(["factory-reset", "--yes"], "Resetting to factory settings");
     }
 
     function setExposure(index) {
@@ -456,6 +462,11 @@ PluginComponent {
                         }
 
                         GestureSection {
+                            width: parent.width
+                            ctl: root
+                        }
+
+                        ResetSection {
                             width: parent.width
                             ctl: root
                         }
