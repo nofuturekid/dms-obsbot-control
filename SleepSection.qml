@@ -24,6 +24,7 @@ SectionCard {
         width: parent.width
         visible: section.ctl.has("auto-sleep")
         label: "Auto-sleep"
+        stacked: true
         options: section.ctl.autoSleepTimes.map(t => t.label)
         currentIndex: section.ctl.autoSleepIndex()
         onSelected: index => {

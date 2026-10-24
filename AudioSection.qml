@@ -23,6 +23,7 @@ SectionCard {
         id: levelRow
         width: parent.width
         label: "Noise reduction"
+        stacked: true
         options: section.levels
         currentIndex: section.levels.indexOf(section.ctl.liteValue("Noise Reduction"))
         onSelected: index => section.ctl.setLite(["audio", "noise-reduction", section.levels[index].toLowerCase()], "Setting noise reduction to " + section.levels[index], "Noise Reduction", section.levels[index])
