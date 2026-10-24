@@ -27,14 +27,14 @@ SectionCard {
                 id: upButton
                 variant: "tonal"
                 iconName: "keyboard_arrow_up"
-                tooltipText: "Tilt up 5°"
+                tooltipText: "Tilt up " + section.ctl.gimbalStepDegrees + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt + section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
-                tooltipText: "Pan left 5°"
+                tooltipText: "Pan left " + section.ctl.gimbalStepDegrees + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan + section.ctl.gimbalStep, section.ctl.tilt)
             }
             DIconButton {
@@ -46,14 +46,14 @@ SectionCard {
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_right"
-                tooltipText: "Pan right 5°"
+                tooltipText: "Pan right " + section.ctl.gimbalStepDegrees + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.gimbalStep, section.ctl.tilt)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_down"
-                tooltipText: "Tilt down 5°"
+                tooltipText: "Tilt down " + section.ctl.gimbalStepDegrees + "°"
                 onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt - section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
@@ -74,11 +74,19 @@ SectionCard {
             StyledText {
                 width: parent.width
                 wrapMode: Text.WordWrap
-                text: "5° per step. Moving switches tracking to Static."
+                text: section.ctl.gimbalStepDegrees + "° per step. Moving switches tracking to Static."
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
         }
+    }
+
+    ToggleRow {
+        width: parent.width
+        label: "Fine steps"
+        description: "1° per click instead of 5°"
+        checked: section.ctl.fineGimbal
+        onToggled: checked => section.ctl.fineGimbal = checked
     }
 
     LabeledSlider {

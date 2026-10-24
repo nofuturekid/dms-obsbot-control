@@ -54,7 +54,10 @@ PluginComponent {
     property var controlValues: ({})
     readonly property bool imageAtDefaults: imageControls.every(c => (controlValues[c.name] ?? c.def) === c.def)
     // Gimbal units are 1/3600 degree; pan +/-130 deg (positive = camera left), tilt +/-90 deg
-    readonly property int gimbalStep: 5 * 3600
+    // Fine steps: 1° per arrow click instead of 5°
+    property bool fineGimbal: false
+    readonly property int gimbalStep: (fineGimbal ? 1 : 5) * 3600
+    readonly property int gimbalStepDegrees: gimbalStep / 3600
     property int pan: 0
     property int tilt: 0
 
@@ -206,9 +209,18 @@ PluginComponent {
             root.aiMode = "Static";
             root.run(["tracking", "static"], "Switching to Static");
         }
+        const fromPan = root.pan;
+        const fromTilt = root.tilt;
         root.pan = Math.max(-468000, Math.min(468000, newPan));
         root.tilt = Math.max(-324000, Math.min(324000, newTilt));
-        Quickshell.execDetached(["v4l2-ctl", "-d", root.device, "-c", "pan_absolute=" + root.pan + ",tilt_absolute=" + root.tilt]);
+
+        // The camera ignores a target under 1° from the centre while it is further away
+        // (Center did nothing); 1° on the side it comes from, then the target, arrives
+        const via = (target, from) => Math.abs(target) < 3600 ? (from < 0 ? -3600 : 3600) : target;
+        const viaPose = "pan_absolute=" + via(root.pan, fromPan) + ",tilt_absolute=" + via(root.tilt, fromTilt);
+        const pose = "pan_absolute=" + root.pan + ",tilt_absolute=" + root.tilt;
+        // One shell, so the two moves cannot overtake each other
+        Quickshell.execDetached(["sh", "-c", "[ \"$2\" = \"$3\" ] || v4l2-ctl -d \"$1\" -c \"$2\"; exec v4l2-ctl -d \"$1\" -c \"$3\"", "sh", root.device, viaPose, pose]);
     }
 
     function degrees(units) {
