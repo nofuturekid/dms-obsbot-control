@@ -55,7 +55,6 @@ PluginComponent {
     readonly property var tracking: cam.tracking ?? ({})
     readonly property var image: cam.image ?? ({})
     readonly property real zoomFactor: cam.zoom?.factor ?? 1
-    readonly property string exposure: cam.state?.exposure_mode ?? ""
     // Gimbal pose in degrees; positive pan = camera left, positive tilt = up
     readonly property real pan: cam.state?.gimbal?.pan ?? 0
     readonly property real tilt: cam.state?.gimbal?.tilt ?? 0
@@ -210,7 +209,7 @@ PluginComponent {
 
     function setExposure(index) {
         const mode = root.exposureModes[index];
-        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, { state: { exposure_mode: mode.arg } });
+        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, { status: { face_auto_exposure: mode.arg === "face" } });
     }
 
     function setControl(name, value) {

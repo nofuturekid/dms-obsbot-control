@@ -15,28 +15,16 @@ SectionCard {
     ToggleRow {
         width: parent.width
         label: "HDR"
-        checked: section.ctl.hdr
+        checked: section.ctl.status.hdr === true
         onToggled: checked => section.ctl.setHdr(checked)
     }
 
-    Column {
+    // Global / face as status byte 0x07 reports it
+    ChipRow {
         width: parent.width
-        spacing: Theme.spacingS
-
-        ChipRow {
-            width: parent.width
-            label: "Exposure"
-            options: section.ctl.exposureModes.map(m => m.label)
-            currentIndex: section.ctl.exposureModes.findIndex(m => m.arg === section.ctl.exposure)
-            onSelected: index => section.ctl.setExposure(index)
-        }
-
-        StyledText {
-            width: parent.width
-            horizontalAlignment: Text.AlignRight
-            text: "Last choice. The camera doesn't report exposure."
-            color: Theme.surfaceVariantText
-            font.pixelSize: Theme.fontSizeSmall
-        }
+        label: "Exposure"
+        options: section.ctl.exposureModes.map(m => m.label)
+        currentIndex: section.ctl.status.face_auto_exposure === undefined ? -1 : (section.ctl.status.face_auto_exposure ? 1 : 0)
+        onSelected: index => section.ctl.setExposure(index)
     }
 }
