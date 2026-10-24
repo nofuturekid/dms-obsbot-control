@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import qs.Common
 import qs.DCommon.Widgets
 
@@ -41,18 +42,28 @@ SectionCard {
             ctl.previewOn = true;
     }
 
-    Rectangle {
+    // ClippingRectangle: plain clip cuts square corners into the video
+    ClippingRectangle {
         width: parent.width
         height: width * 9 / 16
         color: Theme.surfaceContainerLowest
         radius: Theme.cornerRadius
-        clip: true
 
+        // Loaded in the background as soon as the popout opens (Qt Multimedia takes ~2 s to
+        // load), so starting the preview only switches the camera on
         Loader {
             id: videoLoader
             anchors.fill: parent
-            active: pane.ctl.previewOn && pane.ctl.live && pane.ctl.interactionActive
+            active: pane.ctl.interactionActive
+            asynchronous: true
             source: Qt.resolvedUrl("PreviewVideo.qml")
+        }
+
+        Binding {
+            target: videoLoader.item
+            property: "running"
+            value: pane.ctl.previewOn && pane.ctl.live
+            when: videoLoader.status === Loader.Ready
         }
 
         HoverHandler {
