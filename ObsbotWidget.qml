@@ -105,7 +105,7 @@ PluginComponent {
     // The open card of each column of Lite settings ("" = all closed); opening one closes
     // the other in the same column, so the popout stays short
     property string openLeft: ""
-    property string openRight: ""
+    property string openRight: "image"
 
     // changes: { group: { key: value } }; in "image" the value goes into <control>.value
     function patch(changes) {
@@ -416,6 +416,9 @@ PluginComponent {
                             ImageSection {
                                 width: parent.width
                                 ctl: root
+                                controlled: true
+                                expanded: root.openRight === "image"
+                                onToggleRequested: root.openRight = expanded ? "" : "image"
                             }
 
                             AudioSection {
