@@ -44,7 +44,7 @@ Rectangle {
 
         Item {
             width: parent.width
-            height: titleText.implicitHeight + (summaryText.visible ? Theme.spacingXS + summaryText.implicitHeight : 0)
+            height: titleText.implicitHeight + (summaryText.visible ? Theme.spacingXS + summaryText.contentHeight : 0)
             visible: card.title !== ""
 
             StyledText {
