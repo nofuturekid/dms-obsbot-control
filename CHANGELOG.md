@@ -18,10 +18,9 @@ All notable changes to this widget. The format follows
   `cardTabs`; "Reset layout" restores the default.
 - The popout is 920 px wide instead of 760, the left column takes 55 % of it: a larger
   preview.
-- Collapsible cards: one open per tab instead of per column.
-
-### Migrated
-
+- Collapsible cards: one open per tab; switching tabs closes it. When the screen is too
+  low, only the tab content scrolls; Preview and Framing stay in place (the preview gets
+  flatter if needed).
 - A saved `cardOrderLeft` / `cardOrderRight` order becomes the tab order: every card goes
   to its default tab, ordered by its place in its old column. Cards missing there join
   their default tab at the end. The old keys are ignored and removed by "Reset layout".
