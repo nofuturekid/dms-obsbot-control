@@ -263,11 +263,12 @@ PluginComponent {
         pluginService?.savePluginData(pluginId, "cardTabs", next);
     }
 
-    // undefined drops the keys from the saved settings (the pre-0.17.0 column orders too)
+    // undefined drops the keys from the saved settings (the pre-0.17.0 column orders too); cardTabs
+    // goes last so the migration of the old keys does not run in between
     function resetLayout() {
-        pluginService?.savePluginData(pluginId, "cardTabs", undefined);
         pluginService?.savePluginData(pluginId, "cardOrderLeft", undefined);
         pluginService?.savePluginData(pluginId, "cardOrderRight", undefined);
+        pluginService?.savePluginData(pluginId, "cardTabs", undefined);
     }
 
     // changes: { group: { key: value } }; in "image" the value goes into <control>.value
@@ -488,8 +489,10 @@ PluginComponent {
     // close up; a tab without cards drops out of the tab bar, and when a column is left without
     // cards the popout narrows to the one column that is left. The popout reports the count.
     property int shownColumns: 2
-    // 920 px, but at most 90 % of a small screen (1366 px laptop, scaled displays)
-    popoutWidth: shownColumns >= 2 ? Math.min(920, Screen.width > 0 ? Math.round(Screen.width * 0.9) : 920) : 380
+    // 920 px, but at most 90 % of the screen (only below ~1020 px wide screens, e.g. scaled
+    // displays) and at least 720 px so the right column keeps its minimum width
+    readonly property int minRightWidth: 320
+    popoutWidth: shownColumns >= 2 ? Math.max(720, Math.min(920, Screen.width > 0 ? Math.round(Screen.width * 0.9) : 920)) : 380
 
     // The bar draws the pill; plugins only provide the content (same as the built-in widgets).
     // Right click is sleep/wake; left click opens the popout.
@@ -557,6 +560,7 @@ PluginComponent {
                 const want = root.tab !== "" ? root.tab : root.lastTab;
                 return shownTabs.some(t => t.id === want) ? want : (shownTabs[0]?.id ?? "");
             }
+            onActiveTabChanged: root.openCards = ({})
 
             function tabColumn(id) {
                 return id === "tracking" ? trackingTab : id === "picture" ? pictureTab : deviceTab;
@@ -571,8 +575,17 @@ PluginComponent {
             function dragMove(id, scenePos) {
                 const b = tabBar.mapFromItem(null, scenePos.x, scenePos.y);
                 if (b.x >= 0 && b.x < tabBar.width && b.y >= 0 && b.y < tabBar.height) {
-                    const i = Math.min(shownTabs.length - 1, Math.floor(b.x / tabBar.width * shownTabs.length));
-                    drop = { tab: shownTabs[i].id, anchorId: "", after: true, bar: true, x: i * tabBar.width / shownTabs.length, width: tabBar.width / shownTabs.length };
+                    // DTabBar: equal buttons with `spacing` gaps between them
+                    const w = (tabBar.width - tabBar.spacing * (shownTabs.length - 1)) / shownTabs.length;
+                    const i = Math.max(0, Math.min(shownTabs.length - 1, Math.floor(b.x / (w + tabBar.spacing))));
+                    drop = {
+                        tab: shownTabs[i].id,
+                        anchorId: "",
+                        after: true,
+                        bar: true,
+                        x: i * (w + tabBar.spacing),
+                        width: w
+                    };
                     return;
                 }
                 const column = tabColumn(activeTab);
@@ -604,8 +617,8 @@ PluginComponent {
                     Qt.callLater(() => root.moveCard(id, d.tab, d.anchorId, d.after));
             }
 
-            // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
-            // and the header stays in place
+            // DMS sizes the popout to its content; past 85 % of the screen the tab content scrolls
+            // (the left column shrinks its preview instead) and the header stays in place
             readonly property real maxBodyHeight: Math.round(Screen.height * 0.85) - header.height - Theme.spacingM
 
             HeaderBar {
@@ -619,145 +632,145 @@ PluginComponent {
                 height: Theme.spacingM
             }
 
-            DFlickable {
-                id: body
+            Item {
+                id: cols
                 width: parent.width
-                height: Math.min(bodyColumn.implicitHeight, popout.maxBodyHeight)
-                contentWidth: width
-                contentHeight: bodyColumn.implicitHeight
-                clip: true
+                height: columnRow.height
 
-                Column {
-                    id: bodyColumn
-                    width: body.width
-                    spacing: Theme.spacingM
+                Row {
+                    id: columnRow
+                    width: parent.width
+                    spacing: leftColumn.hasCards && rightColumn.shown ? Theme.spacingM : 0
 
-                    Item {
-                        id: cols
-                        width: parent.width
-                        height: columnRow.height
+                    // Always there: the picture to watch while changing settings
+                    Column {
+                        id: leftColumn
+                        // Column skips hidden cards; without any it drops out
+                        readonly property bool hasCards: visibleChildren.length > 0
+                        width: !hasCards ? 0 : rightColumn.shown ? parent.width - parent.spacing - rightColumn.width : parent.width
+                        spacing: Theme.spacingM
 
-                        Row {
-                            id: columnRow
+                        PreviewPane {
                             width: parent.width
-                            spacing: leftColumn.hasCards && rightColumn.shown ? Theme.spacingM : 0
-
-                            // Always there: the picture to watch while changing settings
-                            Column {
-                                id: leftColumn
-                                // Column skips hidden cards; without any it drops out
-                                readonly property bool hasCards: visibleChildren.length > 0
-                                width: !hasCards ? 0 : rightColumn.shown ? (parent.width - parent.spacing) * 0.55 : parent.width
-                                spacing: Theme.spacingM
-
-                                PreviewPane {
-                                    width: parent.width
-                                    visible: root.cardEnabled("Preview")
-                                    ctl: root
-                                }
-
-                                FramingSection {
-                                    width: parent.width
-                                    visible: root.cardEnabled("Framing")
-                                    ctl: root
-                                }
-                            }
-
-                            Column {
-                                id: rightColumn
-                                readonly property bool shown: popout.shownTabs.length > 0
-                                width: !shown ? 0 : !leftColumn.hasCards ? parent.width : parent.width - leftColumn.width - parent.spacing
-                                spacing: Theme.spacingM
-
-                                DTabBar {
-                                    id: tabBar
-                                    width: parent.width
-                                    model: popout.shownTabs
-                                    currentIndex: popout.shownTabs.findIndex(t => t.id === popout.activeTab)
-                                    onTabClicked: index => root.selectTab(popout.shownTabs[index].id, true)
-                                }
-
-                                // The tabs lie on top of each other and the area is as high as the
-                                // tallest one, so the popout does not jump when switching. A tab that is
-                                // not selected stays "visible" (the cards' visibility is what counts as
-                                // having cards) but is see-through and inert.
-                                Item {
-                                    id: tabArea
-                                    width: parent.width
-                                    height: Math.max(trackingTab.height, pictureTab.height, deviceTab.height)
-
-                                    Column {
-                                        id: trackingTab
-                                        readonly property bool hasCards: visibleChildren.length > 0
-                                        width: parent.width
-                                        spacing: Theme.spacingM
-                                        opacity: popout.activeTab === "tracking" ? 1 : 0
-                                        enabled: popout.activeTab === "tracking"
-
-                                        Repeater {
-                                            visible: false
-                                            model: root.cardTabs.tracking
-                                            delegate: cardChooser
-                                        }
-                                    }
-
-                                    Column {
-                                        id: pictureTab
-                                        readonly property bool hasCards: visibleChildren.length > 0
-                                        width: parent.width
-                                        spacing: Theme.spacingM
-                                        opacity: popout.activeTab === "picture" ? 1 : 0
-                                        enabled: popout.activeTab === "picture"
-
-                                        Repeater {
-                                            visible: false
-                                            model: root.cardTabs.picture
-                                            delegate: cardChooser
-                                        }
-                                    }
-
-                                    Column {
-                                        id: deviceTab
-                                        readonly property bool hasCards: visibleChildren.length > 0
-                                        width: parent.width
-                                        spacing: Theme.spacingM
-                                        opacity: popout.activeTab === "device" ? 1 : 0
-                                        enabled: popout.activeTab === "device"
-
-                                        Repeater {
-                                            visible: false
-                                            model: root.cardTabs.device
-                                            delegate: cardChooser
-                                        }
-                                    }
-                                }
-                            }
+                            // On a small screen the preview shrinks so the column fits
+                            maxHeight: popout.maxBodyHeight - (framing.visible ? framing.height + leftColumn.spacing : 0)
+                            visible: root.cardEnabled("Preview")
+                            ctl: root
                         }
 
-                        // Insert position of the card being dragged
-                        Rectangle {
-                            visible: popout.drop !== null && !popout.drop.bar
-                            x: popout.drop?.x ?? 0
-                            y: Math.max(0, (popout.drop?.y ?? 0) - height / 2)
-                            width: popout.drop?.width ?? 0
-                            height: Theme.spacingXS
-                            radius: height / 2
-                            color: Theme.primary
-                        }
-
-                        // Tab button the card would be dropped on
-                        Rectangle {
-                            visible: popout.drop?.bar ?? false
-                            x: tabBar.mapToItem(cols, popout.drop?.x ?? 0, 0).x
-                            y: tabBar.mapToItem(cols, 0, 0).y
-                            width: popout.drop?.width ?? 0
-                            height: tabBar.height
-                            radius: Theme.cornerRadius
-                            color: "transparent"
-                            border.width: 2
-                            border.color: Theme.primary
+                        FramingSection {
+                            id: framing
+                            width: parent.width
+                            visible: root.cardEnabled("Framing")
+                            ctl: root
                         }
                     }
+
+                    Column {
+                        id: rightColumn
+                        readonly property bool shown: popout.shownTabs.length > 0
+                        width: !shown ? 0 : !leftColumn.hasCards ? parent.width : Math.max(root.minRightWidth, Math.round((parent.width - parent.spacing) * 0.45))
+                        spacing: Theme.spacingM
+
+                        DTabBar {
+                            id: tabBar
+                            width: parent.width
+                            model: popout.shownTabs
+                            currentIndex: popout.shownTabs.findIndex(t => t.id === popout.activeTab)
+                            onTabClicked: index => root.selectTab(popout.shownTabs[index].id, true)
+                        }
+
+                        // The tabs lie on top of each other and the area is as high as the
+                        // tallest one, so the popout does not jump when switching. A tab that is
+                        // not selected stays "visible" (the cards' visibility is what counts as
+                        // having cards) but is see-through and inert. Open cards close on a tab
+                        // switch, so a card left open in a hidden tab cannot make the area taller.
+                        DFlickable {
+                            id: tabFlick
+                            width: parent.width
+                            // The left column stays put; only the tab content scrolls, within what the
+                            // screen leaves below the tab bar
+                            height: Math.min(tabArea.height, Math.max(0, popout.maxBodyHeight - tabBar.height - rightColumn.spacing))
+                            contentWidth: width
+                            contentHeight: tabArea.height
+                            clip: true
+
+                            Item {
+                                id: tabArea
+                                width: parent.width
+                                height: Math.max(trackingTab.height, pictureTab.height, deviceTab.height)
+
+                                Column {
+                                    id: trackingTab
+                                    readonly property bool hasCards: visibleChildren.length > 0
+                                    width: parent.width
+                                    spacing: Theme.spacingM
+                                    opacity: popout.activeTab === "tracking" ? 1 : 0
+                                    enabled: popout.activeTab === "tracking"
+
+                                    Repeater {
+                                        visible: false
+                                        model: root.cardTabs.tracking
+                                        delegate: cardChooser
+                                    }
+                                }
+
+                                Column {
+                                    id: pictureTab
+                                    readonly property bool hasCards: visibleChildren.length > 0
+                                    width: parent.width
+                                    spacing: Theme.spacingM
+                                    opacity: popout.activeTab === "picture" ? 1 : 0
+                                    enabled: popout.activeTab === "picture"
+
+                                    Repeater {
+                                        visible: false
+                                        model: root.cardTabs.picture
+                                        delegate: cardChooser
+                                    }
+                                }
+
+                                Column {
+                                    id: deviceTab
+                                    readonly property bool hasCards: visibleChildren.length > 0
+                                    width: parent.width
+                                    spacing: Theme.spacingM
+                                    opacity: popout.activeTab === "device" ? 1 : 0
+                                    enabled: popout.activeTab === "device"
+
+                                    Repeater {
+                                        visible: false
+                                        model: root.cardTabs.device
+                                        delegate: cardChooser
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Insert position of the card being dragged
+                Rectangle {
+                    visible: popout.drop !== null && !popout.drop.bar
+                    x: popout.drop?.x ?? 0
+                    y: Math.max(0, (popout.drop?.y ?? 0) - height / 2)
+                    width: popout.drop?.width ?? 0
+                    height: Theme.spacingXS
+                    radius: height / 2
+                    color: Theme.primary
+                }
+
+                // Tab button the card would be dropped on
+                Rectangle {
+                    visible: popout.drop?.bar ?? false
+                    x: tabBar.mapToItem(cols, popout.drop?.x ?? 0, 0).x
+                    y: tabBar.mapToItem(cols, 0, 0).y
+                    width: popout.drop?.width ?? 0
+                    height: tabBar.height
+                    radius: Theme.cornerRadius
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Theme.primary
                 }
             }
 
