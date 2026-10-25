@@ -3,6 +3,13 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.1] - 2026-10-25
+
+### Changed
+
+- The popout header shows the plugin's name, OBSBOT Control, and puts the
+  camera model in front of its state: "Tiny 2 Lite · Awake · Static".
+
 ## [0.7.0] - 2026-10-25
 
 ### Changed

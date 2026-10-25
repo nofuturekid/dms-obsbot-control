@@ -34,7 +34,7 @@ Item {
         spacing: 2
 
         StyledText {
-            text: "Tiny 2 Lite"
+            text: "OBSBOT Control"
             color: Theme.surfaceText
             font.pixelSize: Theme.fontSizeLarge
             font.weight: Font.DemiBold
@@ -62,7 +62,8 @@ Item {
 
             StyledText {
                 anchors.verticalCenter: parent.verticalCenter
-                text: bar.ctl.statusText
+                // the camera model, then its state: the title is the plugin's name
+                text: "Tiny 2 Lite · " + bar.ctl.statusText
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
