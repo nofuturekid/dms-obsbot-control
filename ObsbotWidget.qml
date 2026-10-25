@@ -125,7 +125,9 @@ PluginComponent {
             return toolMissing ? "Control tool not found" : "Not reachable";
         if (pendingLabel !== "")
             return pendingLabel + "…";
-        return awake ? "Awake · " + aiMode : "Asleep · lens stowed";
+        // obsbot4linux 0.4.0: target null while static, detected false while the camera searches
+        const searching = cam.target?.detected === false;
+        return awake ? "Awake · " + aiMode + (searching ? " · searching" : "") : "Asleep · lens stowed";
     }
     // Any application reading the camera, the widget's own preview included (obsbot4linux 0.3.0)
     // On air: any app streams (obsbot4linux's kernel probe) or our own preview runs. The preview is

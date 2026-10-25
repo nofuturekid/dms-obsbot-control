@@ -67,14 +67,6 @@ SectionCard {
         onToggled: checked => section.ctl.send(["zone", checked ? "on" : "off"], checked ? "Turning on zone tracking" : "Turning off zone tracking", { tracking: { zone_tracking: checked } })
     }
 
-    ToggleRow {
-        width: parent.width
-        visible: section.ctl.has("zone_follow")
-        label: "Follow new targets"
-        checked: section.ctl.cam.state?.zone_follow === true
-        onToggled: checked => section.ctl.send(["zone", "follow", checked ? "on" : "off"], checked ? "Following new targets" : "Not following new targets", { state: { zone_follow: checked } })
-    }
-
     // Sent once the slider is let go, not on every step
     LabeledSlider {
         id: panMinSlider

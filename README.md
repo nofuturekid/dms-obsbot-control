@@ -32,10 +32,12 @@ join their default column at the end.
   runs (no other app can use the camera meanwhile; it stops when the popout
   closes), otherwise a hint with one action: Start preview, Wake camera, or
   Retry when the camera or obsbot4linux can't be reached
-- tracking: AI mode, speed, tracked hand
+- tracking: AI mode, speed, tracked hand, follow new targets (keeps tracking and
+  waits for a new target instead of switching to Static); "searching" in the status
+  while it has lost its target
 - framing: pan/tilt d-pad with live pose and fine steps, center, zoom; a manual
   move switches tracking to Static
-- zone: zone tracking on/off, follow new targets, the area (pan and tilt range,
+- zone: zone tracking on/off, the area (pan and tilt range,
   "Full area") and "Return here"; the camera cannot report the area, so the card shows
   the last one set. Leaving the area stops tracking (Static, back to the return
   position) unless "Follow new targets" is on, then the camera waits for the next person

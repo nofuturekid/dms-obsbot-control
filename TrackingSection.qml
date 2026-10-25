@@ -53,6 +53,16 @@ SectionCard {
         onSelected: index => section.ctl.send(["hand", section.sides[index].toLowerCase()], "Tracking the " + section.sides[index].toLowerCase() + " hand", { tracking: { hand_side: section.sides[index].toLowerCase() } })
     }
 
+    // Works with and without zone tracking (measured): when the target is lost the camera keeps
+    // tracking and waits for a new one instead of switching to Static. Not in the compact tile.
+    ToggleRow {
+        width: parent.width
+        visible: section.ctl.has("zone_follow") && !section.compact
+        label: "Follow new targets"
+        checked: section.ctl.cam.state?.zone_follow === true
+        onToggled: checked => section.ctl.send(["zone", "follow", checked ? "on" : "off"], checked ? "Following new targets" : "Not following new targets", { state: { zone_follow: checked } })
+    }
+
     // A click assigns currentIndex and breaks the binding; re-sync to the camera state
     Connections {
         target: section.ctl
