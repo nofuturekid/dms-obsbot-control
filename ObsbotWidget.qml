@@ -118,6 +118,13 @@ PluginComponent {
 
     // Live preview; holds the camera, so no other app can open it meanwhile
     property bool previewOn: false
+    // Starting the preview on a desktop widget switches this one off, and the other way round
+    PreviewClaim {
+        id: previewClaim
+        pluginId: root.pluginId
+        holding: root.previewOn
+        onDisplaced: root.previewOn = false
+    }
     readonly property bool live: available && awake
 
     readonly property string statusText: {
@@ -132,9 +139,11 @@ PluginComponent {
     // Any application reading the camera, the widget's own preview included (obsbot4linux 0.3.0)
     // On air: any app streams (obsbot4linux's kernel probe) or our own preview runs. The preview is
     // counted here too: Qt reads the frames without mmap, so obsbot4linux can't name it.
-    readonly property bool streaming: cam.streaming === true || previewOn
+    // A preview of ours also runs on a desktop widget (PreviewClaim shares that between surfaces)
+    readonly property bool previewRunning: previewOn || previewClaim.anyRunning
+    readonly property bool streaming: cam.streaming === true || previewRunning
     // Names obsbot4linux could see (may be empty, e.g. Chrome's sandbox), plus our preview
-    readonly property var streamingApps: (cam.streaming_apps ?? []).filter(a => a !== "qs").concat(previewOn ? ["qs"] : [])
+    readonly property var streamingApps: (cam.streaming_apps ?? []).filter(a => a !== "qs").concat(previewRunning ? ["qs"] : [])
     readonly property var appNames: ({
             "qs": "preview",
             "chrome": "Chrome",

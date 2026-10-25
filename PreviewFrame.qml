@@ -1,0 +1,145 @@
+import QtQuick
+import Quickshell.Widgets
+import qs.Common
+import qs.DCommon.Widgets
+
+// The preview picture with its overlay: live video while the preview runs, otherwise a hint with
+// one action (start preview, wake camera, retry when not reachable). Hovering the running video
+// shows the same kind of hint over it, with a button to stop the preview. Fills the size it is
+// given (the popout card makes it 16:9; the desktop widget lets the user resize it), the video is
+// fitted inside. Used by the popout's PreviewPane and the desktop widget.
+//
+// ctl is what the frame needs from the camera: available, toolMissing, awake, live, previewReady,
+// videoNode, previewOn (read/write), interactionActive, refresh(), setAwake(on).
+// interactive: false ignores hover and button (desktop edit mode).
+ClippingRectangle {
+    id: frame
+
+    property var ctl
+    property bool interactive: true
+    // Desktop widget: drop the hint's text body when the resized frame is too small for it
+    property bool dropBodyWhenTight: false
+
+    // Without qt6-multimedia PreviewVideo.qml fails to load; the frame then says so
+    readonly property bool videoMissing: videoLoader.status === Loader.Error
+    readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing
+    readonly property bool overlayShown: !previewShown || (interactive && frameHover.hovered)
+    readonly property var hint: previewShown
+        ? { icon: "visibility", title: "Preview is on", body: "No other app can use the camera while it's on. Stop it before a call.", button: "Stop preview", buttonIcon: "stop" }
+        : !ctl.available
+        ? (ctl.toolMissing
+            ? { icon: "terminal", title: "Control tool not found", body: "obsbot4linux could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
+            : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in.", button: "Retry", buttonIcon: "refresh" })
+        : videoMissing
+            ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }
+        : !ctl.awake
+            ? { icon: "videocam_off", title: "Camera is asleep", body: "Lens is stowed face-down. Wake it to preview, track or adjust the picture.", button: "Wake camera", buttonIcon: "videocam" }
+        : !ctl.previewReady
+            ? { icon: "hourglass_empty", title: "Waiting for the camera", body: "The preview starts once the camera's video device is known.", button: "", buttonIcon: "" }
+            : { icon: "visibility_off", title: "Preview is off", body: "Turn it on to see the picture while you adjust it. While it's on, no other app can use the camera.", button: "Start preview", buttonIcon: "play_arrow" }
+
+    function hintAction() {
+        if (!interactive)
+            return;
+        if (previewShown)
+            ctl.previewOn = false;
+        else if (!ctl.available)
+            ctl.refresh();
+        else if (videoMissing)
+            ctl.previewOn = false;
+        else if (!ctl.awake)
+            ctl.setAwake(true);
+        else if (ctl.previewReady)
+            ctl.previewOn = true;
+    }
+
+    // ClippingRectangle: plain clip cuts square corners into the video
+    color: Theme.surfaceContainerLowest
+    radius: Theme.cornerRadius
+
+    // Loaded in the background as soon as the popout opens (Qt Multimedia takes ~2 s to
+    // load), so starting the preview only switches the camera on
+    Loader {
+        id: videoLoader
+        anchors.fill: parent
+        active: frame.ctl.interactionActive
+        asynchronous: true
+        source: Qt.resolvedUrl("PreviewVideo.qml")
+    }
+
+    Binding {
+        target: videoLoader.item
+        property: "node"
+        value: frame.ctl.videoNode
+        when: videoLoader.status === Loader.Ready
+    }
+
+    Binding {
+        target: videoLoader.item
+        property: "running"
+        value: frame.ctl.previewOn && frame.ctl.live
+        when: videoLoader.status === Loader.Ready
+    }
+
+    HoverHandler {
+        id: frameHover
+        enabled: frame.interactive
+    }
+
+    // Dims the video under the hint while hovering
+    Rectangle {
+        anchors.fill: parent
+        visible: frame.previewShown && frame.overlayShown
+        color: Theme.withAlpha(Theme.surfaceContainerLowest, 0.75)
+    }
+
+    Column {
+        id: hintColumn
+        anchors.centerIn: parent
+        width: parent.width - Theme.spacingXL * 2
+        spacing: Theme.spacingS
+        visible: frame.overlayShown
+
+        // With dropBodyWhenTight the text body goes when the frame is too small for icon, title, text and button
+        readonly property bool bodyFits: !frame.dropBodyWhenTight || frame.height - Theme.spacingL * 2 >= icon.height + titleText.height + bodyText.implicitHeight + (button.visible ? button.height : 0) + spacing * (button.visible ? 3 : 2)
+
+        DIcon {
+            id: icon
+            anchors.horizontalCenter: parent.horizontalCenter
+            name: frame.hint.icon
+            color: Theme.surfaceVariantText
+            size: Theme.iconSizeLarge
+        }
+
+        StyledText {
+            id: titleText
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: frame.hint.title
+            color: Theme.surfaceText
+            font.pixelSize: Theme.fontSizeMedium
+            font.weight: Font.DemiBold
+        }
+
+        StyledText {
+            id: bodyText
+            width: parent.width
+            visible: hintColumn.bodyFits
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            text: frame.hint.body
+            color: Theme.surfaceVariantText
+            font.pixelSize: Theme.fontSizeSmall
+        }
+
+        DButton {
+            id: button
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: frame.hint.button !== ""
+            enabled: frame.interactive
+            text: frame.hint.button
+            iconName: frame.hint.buttonIcon
+            onClicked: frame.hintAction()
+        }
+    }
+}

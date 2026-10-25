@@ -1,6 +1,6 @@
 # dms-obsbot-control
 
-DankMaterialShell bar widget for OBSBOT webcams.
+DankMaterialShell bar widget and desktop preview for OBSBOT webcams.
 
 ![Popout with the preview off](assets/screenshot.png)
 
@@ -87,6 +87,27 @@ The card switches affect the popout only (not the bar icon actions or the Contro
 Center tile). A card the connected camera does not support stays hidden whatever its
 switch says. Hidden cards close up; if a whole column is empty the popout narrows
 from 760 px to the one column that is left.
+
+## Desktop preview
+
+The plugin also provides a desktop widget with the camera picture: add **OBSBOT Control**
+in Settings → Desktop Widgets (it is listed next to the other desktop widgets), then
+place and resize it like any other. The picture is 16:9 and fitted inside the widget,
+which can be resized from 240 × 135 px up; position and size are kept by DMS.
+
+It behaves like the popout's Preview card. With the preview off it shows the same hint
+with one action (Start preview, Wake camera, or Retry); with it on you see the live
+picture, and hovering shows "Stop preview". It never starts by itself: while the preview
+runs no other app can use the camera, and a small red dot in the corner shows that.
+
+- The preview keeps running until you stop it, the camera goes to sleep or is unplugged,
+  or the widget is unloaded (switched off or removed in Desktop Widgets, or the desktop
+  is being edited). It does not stop when you merely look elsewhere.
+- Only one preview runs at a time: starting it on the desktop switches the popout's
+  preview off and the other way round (also for two desktop widgets, e.g. on two screens).
+  The bar icon's red dot and "On air: preview" count the desktop preview too.
+- The desktop widget runs its own `obsbot4linux watch`, like the Control Center tile.
+- While the desktop is being edited the widget is inert (no buttons, no hover).
 
 Camera access goes through [OBSBot4Linux](https://github.com/nofuturekid/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event

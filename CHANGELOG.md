@@ -3,6 +3,28 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.15.0] - 2026-10-25
+
+### Added
+
+- Desktop widget with the camera preview (a second surface of the plugin, which is
+  now a composite plugin and needs DMS 1.5.0 or newer). Same overlay as the popout:
+  preview off shows the hint with Start preview / Wake camera / Retry, preview on
+  shows the live picture and hovering offers "Stop preview". 16:9 picture fitted in
+  a freely placed and resizable widget (minimum 240 × 135 px). It never starts by
+  itself and stops when the camera sleeps or is unplugged, or when DMS unloads the
+  widget (switched off, removed, desktop being edited); a small red dot marks a
+  running preview. It runs its own `obsbot4linux watch`.
+- One preview at a time: starting the preview on the desktop switches the popout's off
+  and the other way round. The bar icon's on-air dot and the header's "On air:
+  preview" count the desktop preview.
+
+### Changed
+
+- The preview frame (picture, hint, hover overlay) moved from `PreviewPane` into
+  `PreviewFrame`, shared by the popout card and the desktop widget; the popout looks
+  and behaves as before.
+
 ## [0.14.0] - 2026-10-25
 
 ### Added
