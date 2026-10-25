@@ -76,7 +76,7 @@ Item {
         anchors.right: awakeRow.visible ? awakeRow.left : parent.right
         anchors.rightMargin: awakeRow.visible ? Theme.spacingM : 0
         anchors.verticalCenter: parent.verticalCenter
-        iconName: bar.ctl.arranging ? "check" : "drag_indicator"
+        iconName: bar.ctl.arranging ? "check" : "edit"
         variant: bar.ctl.arranging ? "tonal" : "standard"
         tooltipText: bar.ctl.arranging ? "Done" : "Arrange cards"
         onClicked: bar.ctl.arranging = !bar.ctl.arranging

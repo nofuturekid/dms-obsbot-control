@@ -7,7 +7,7 @@ All notable changes to this widget. The format follows
 
 ### Added
 
-- Arrange cards: a grip button in the popout header switches to arrange mode
+- Arrange cards: an edit (pencil) button in the popout header switches to arrange mode
   (the button then shows a check mark). The cards fold up and get a drag handle
   in their title row; drag one within its column or into the other column, a
   line shows the insert position. Outside arrange mode nothing is draggable. Both
@@ -15,6 +15,18 @@ All notable changes to this widget. The format follows
   layout" restores the default order. The order is saved per column in the plugin
   settings (`cardOrderLeft`, `cardOrderRight`, lists of card ids); hidden and
   unsupported cards keep their slot, new cards join their default column.
+
+### Changed
+
+- "Hide the bar icon without a camera" no longer polls: the icon follows the
+  state of the running `obsbot4linux watch` process (no `obsbot4linux detect`
+  every 5 seconds any more), and comes back as soon as the camera is plugged in
+  again.
+
+### Fixed
+
+- The "Binding loop detected for property height" warning in the journal when the
+  popout opens (title row of the cards).
 
 ## [0.12.0] - 2026-10-25
 

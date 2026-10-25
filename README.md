@@ -17,7 +17,7 @@ Left: Preview, Framing, Camera, Sleep. Right: Tracking, Picture, Image, Audio,
 Gestures, Factory reset. Collapsible cards start closed, one open per column, and
 a closed card lists its settings under the title.
 
-**Arrange cards:** the grip button in the header switches the popout into arrange
+**Arrange cards:** the edit (pencil) button in the header switches the popout into arrange
 mode (it then reads as a check mark: click it to finish). Cards fold up and show a
 handle at the right of the title; drag a card by its handle within its column or to
 the other one, a line shows where it will land. Nothing can be dragged outside this
@@ -73,6 +73,7 @@ Right click is always sleep/wake. Further switches, all applied at once:
 
 | Setting | Key | Default |
 | --- | --- | --- |
+| Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera` | off |
 | Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only | `statusTextInBar` | off |
 | Popout cards: Preview, Framing, Camera, Sleep, Tracking, Picture, Image, Audio, Gestures, Factory reset | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on |
 
