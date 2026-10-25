@@ -7,6 +7,8 @@ SectionCard {
     id: section
 
     property var ctl
+    // compact: for the Control Center tile; the tracked hand stays in the popout and the detail page
+    property bool compact: false
 
     readonly property var sides: ["Left", "Right"]
 
@@ -42,7 +44,7 @@ SectionCard {
     ChipRow {
         id: sideRow
         width: parent.width
-        visible: section.ctl.has("hand")
+        visible: section.ctl.has("hand") && !section.compact
         enabled: section.ctl.status.ai_mode === "hand"
         opacity: enabled ? 1 : 0.38
         label: "Tracked hand"

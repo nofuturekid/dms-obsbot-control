@@ -19,8 +19,8 @@ All notable changes to this widget. The format follows
   other mode (Normal Tracking until one was used). Both can be switched off on
   the settings page.
 - Control Center tile: the icon wakes or sleeps the camera, the subtitle shows
-  the state. A large enough tile (about 4 × 5) and the detail page show the
-  Tracking card (mode, speed, tracked hand). Control Center runs its own
+  the state. A 4 × 4 tile shows the tracking modes and speed, the detail page
+  the whole Tracking card (also the tracked hand). Control Center runs its own
   instance of the widget, so it starts its own `obsbot4linux watch` while open.
 
 ### Changed

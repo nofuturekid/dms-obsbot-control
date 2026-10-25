@@ -37,8 +37,8 @@ Bar icon interactions:
 | Hover | Tooltip with the state, e.g. "Tiny 2 Lite · Awake · Static" |
 
 Control Center tile: the icon wakes or sleeps the camera, the subtitle shows its
-state. A tile large enough (about 4 × 5 cells) and the tile's detail page show the
-Tracking card with mode, speed and tracked hand.
+state. A 4 × 4 tile shows the tracking modes and speed; the tile's detail page
+also has the tracked hand.
 
 Settings page: a tracking mode applied whenever the camera wakes up, and switches
 for "Mouse wheel zooms" and "Middle click toggles tracking" (both on by default).
