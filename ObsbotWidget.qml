@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Common
 import qs.DCommon.Widgets
+import qs.Modules.ControlCenter.Widgets
 import qs.Modules.Plugins
 
 PluginComponent {
@@ -41,6 +42,11 @@ PluginComponent {
     readonly property bool manualExposure: (image.auto_exposure?.value ?? 0) === 1
     // Settings page: tracking mode applied whenever the camera wakes up ("" = keep)
     readonly property string wakeTrackingMode: pluginData?.wakeTrackingMode ?? ""
+    // Settings page: the pill's mouse wheel zooms, its middle click toggles tracking
+    readonly property bool wheelZoom: pluginData?.wheelZoom ?? true
+    readonly property bool middleClickTracking: pluginData?.middleClickTracking ?? true
+    // Last tracking mode other than Static (ai_mode key), what the middle click goes back to
+    readonly property string lastTrackingMode: pluginData?.lastTrackingMode ?? "normal"
 
     // UVC controls shown as sliders; range and default come from obsbot4linux's image.<name>
     readonly property var imageControls: [
@@ -94,6 +100,8 @@ PluginComponent {
             return pendingLabel + "…";
         return awake ? "Awake · " + aiMode : "Asleep · lens stowed";
     }
+    // Header, pill tooltip and Control Center tile all show this line
+    readonly property string summary: "Tiny 2 Lite · " + statusText
 
     // DMS only hides the popout, its content stays alive; switch the preview off on close
     onInteractionActiveChanged: {
@@ -182,6 +190,9 @@ PluginComponent {
         // Only on a real asleep -> awake change seen in events, not on the first state after a DMS start
         if (was === true && next.status?.asleep === false && root.wakeTrackingMode !== "")
             root.send(["tracking", root.wakeTrackingMode]);
+        const mode = next.status?.ai_mode;
+        if (mode && mode !== "static" && mode !== root.lastTrackingMode)
+            root.pluginService?.savePluginData(root.pluginId, "lastTrackingMode", mode);
         root.stateRefreshed();
     }
 
@@ -189,6 +200,20 @@ PluginComponent {
         if (!on)
             root.previewOn = false;
         root.send([on ? "wake" : "sleep"], on ? "Waking camera" : "Stowing lens", { status: { asleep: !on } });
+    }
+
+    function toggleAwake() {
+        if (root.available)
+            root.setAwake(!root.awake);
+    }
+
+    // Middle click: Static <-> the last other mode
+    function toggleTracking() {
+        if (!root.available)
+            return;
+        const target = status.ai_mode === "static" ? root.lastTrackingMode : "static";
+        const index = root.trackingModes.findIndex(m => m.key === target);
+        root.setMode(index < 0 ? 1 : index);
     }
 
     function setMode(index) {
@@ -223,6 +248,13 @@ PluginComponent {
 
     function setZoom(factor) {
         root.send(["zoom", factor.toFixed(2)], "", { zoom: { factor: factor } }, true);
+    }
+
+    // Mouse wheel: 0.1 per notch within 1.0-4.0, the range `obsbot4linux zoom` accepts
+    function stepZoom(notches) {
+        const next = Math.max(1, Math.min(4, Math.round((root.zoomFactor + notches * 0.1) * 100) / 100));
+        if (next !== root.zoomFactor)
+            root.setZoom(next);
     }
 
     // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself
@@ -290,33 +322,48 @@ PluginComponent {
     // in place and is black while the preview is off
     popoutWidth: 760
 
-    // The bar draws the pill; plugins only provide the icon (same as the built-in widgets)
+    // The bar draws the pill; plugins only provide the content (same as the built-in widgets).
+    // Right click is sleep/wake; left click opens the popout.
     horizontalBarPill: Component {
-        DIcon {
-            name: root.live ? "videocam" : "videocam_off"
-            color: root.live ? Theme.primary : Theme.surfaceVariantText
-            size: root.iconSize
-            anchors.verticalCenter: parent.verticalCenter
-
-            // Dot: the preview is holding the camera
-            Rectangle {
-                visible: root.previewOn && root.live
-                width: Math.round(root.iconSize / 4)
-                height: width
-                radius: width / 2
-                anchors.top: parent.top
-                anchors.right: parent.right
-                color: Theme.surfaceText
-            }
+        PillContent {
+            ctl: root
         }
     }
 
     verticalBarPill: Component {
-        DIcon {
-            name: root.live ? "videocam" : "videocam_off"
-            color: root.live ? Theme.primary : Theme.surfaceVariantText
-            size: root.iconSize
-            anchors.horizontalCenter: parent.horizontalCenter
+        PillContent {
+            ctl: root
+        }
+    }
+    pillRightClickAction: () => root.toggleAwake()
+
+    // Control Center tile: the icon toggles sleep/wake. Larger tiles and the detail page show
+    // the tracking card. Control Center runs its own instance of this component.
+    ccWidgetIcon: root.live ? "videocam" : "videocam_off"
+    ccWidgetPrimaryText: "OBSBOT Control"
+    ccWidgetSecondaryText: root.summary
+    ccWidgetIsActive: root.awake
+    onCcWidgetToggled: root.toggleAwake()
+    ccExpandedMinimumHeight: Theme.listItemHeight * 2
+    ccExpandedContent: Component {
+        CcTileContent {
+            clip: true
+
+            TrackingSection {
+                width: parent.width
+                ctl: root
+                flat: true
+                title: ""
+            }
+        }
+    }
+    ccDetailHeight: Theme.listItemHeight * 6
+    ccDetailContent: Component {
+        Item {
+            TrackingSection {
+                width: parent.width
+                ctl: root
+            }
         }
     }
 

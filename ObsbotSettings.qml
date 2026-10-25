@@ -22,4 +22,18 @@ PluginSettings {
         ]
         defaultValue: ""
     }
+
+    ToggleSetting {
+        settingKey: "wheelZoom"
+        label: "Mouse wheel zooms"
+        description: "Scrolling over the bar icon changes the zoom by 0.1 per notch"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "middleClickTracking"
+        label: "Middle click toggles tracking"
+        description: "Switches between Static and the last tracking mode; right click always wakes or sleeps the camera"
+        defaultValue: true
+    }
 }

@@ -63,7 +63,7 @@ Item {
             StyledText {
                 anchors.verticalCenter: parent.verticalCenter
                 // the camera model, then its state: the title is the plugin's name
-                text: "Tiny 2 Lite · " + bar.ctl.statusText
+                text: bar.ctl.summary
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
