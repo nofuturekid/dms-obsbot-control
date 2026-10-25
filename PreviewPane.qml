@@ -22,7 +22,7 @@ SectionCard {
         : !ctl.available
         ? (ctl.toolMissing
             ? { icon: "terminal", title: "Control tool not found", body: "obsbot4linux could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
-            : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in. The bar icon hides while it is gone.", button: "Retry", buttonIcon: "refresh" })
+            : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in.", button: "Retry", buttonIcon: "refresh" })
         : videoMissing
             ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }
         : !ctl.awake

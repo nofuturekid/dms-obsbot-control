@@ -16,8 +16,11 @@ Item {
 
     DIcon {
         anchors.centerIn: parent
-        name: pill.ctl.live ? "videocam" : "videocam_off"
+        // unplugged/unreachable gets its own icon, so it is not mistaken for asleep (videocam_off)
+        name: !pill.ctl.available ? "usb_off" : pill.ctl.live ? "videocam" : "videocam_off"
         color: pill.ctl.live ? Theme.primary : Theme.surfaceVariantText
+        // dimmed while the camera is unplugged or unreachable
+        opacity: pill.ctl.available ? 1 : 0.38
         size: pill.ctl.iconSize
 
         // Dot: the preview is holding the camera

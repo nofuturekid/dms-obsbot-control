@@ -24,6 +24,13 @@ PluginSettings {
     }
 
     ToggleSetting {
+        settingKey: "hideWithoutCamera"
+        label: "Hide the bar icon without a camera"
+        description: "Off: the icon stays, dimmed, while no camera is plugged in"
+        defaultValue: false
+    }
+
+    ToggleSetting {
         settingKey: "wheelZoom"
         label: "Mouse wheel zooms"
         description: "Scrolling over the bar icon changes the zoom by 0.1 per notch"

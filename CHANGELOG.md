@@ -3,6 +3,15 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.0] - 2026-10-25
+
+### Changed
+
+- The bar icon stays visible while no camera is plugged in, dimmed with usb_off
+  (asleep keeps videocam_off, so the two are not confused); a click opens the
+  popout with "Camera not connected". The settings page can hide it instead, as
+  before ("Hide the bar icon without a camera").
+
 ## [0.9.0] - 2026-10-25
 
 ### Changed

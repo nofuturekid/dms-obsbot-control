@@ -34,8 +34,8 @@ a closed card lists its settings under the title.
 - audio: noise reduction, pickup distance, automatic gain, microphone while asleep
 - gestures: gesture switches and zoom ratio
 - factory reset with a two-click confirmation
-- bar icon: videocam (accent) awake, videocam_off asleep, a dot while the
-  preview holds the camera, hidden while unplugged
+- bar icon: videocam (accent) awake, videocam_off asleep, usb_off dimmed while
+  unplugged (or hidden, see settings), a dot while the preview holds the camera
 
 Bar icon interactions:
 

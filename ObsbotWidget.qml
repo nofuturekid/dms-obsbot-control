@@ -42,6 +42,8 @@ PluginComponent {
     // Settings page: the pill's mouse wheel zooms, its middle click toggles tracking
     readonly property bool wheelZoom: pluginData?.wheelZoom ?? true
     readonly property bool middleClickTracking: pluginData?.middleClickTracking ?? true
+    // Settings page: hide the bar icon while no supported camera is plugged in (default: show it dimmed)
+    readonly property bool hideWithoutCamera: pluginData?.hideWithoutCamera ?? false
     // Last tracking mode other than Static (ai_mode key), what the middle click goes back to
     readonly property string lastTrackingMode: pluginData?.lastTrackingMode ?? "normal"
 
@@ -298,8 +300,9 @@ PluginComponent {
         return autoSleepTimes.findIndex(t => t.arg === String(status.auto_sleep_seconds));
     }
 
-    // Exit 0 while a camera obsbot4linux supports is plugged in; enumerates only, no daemon
-    visibilityCommand: "obsbot4linux detect >/dev/null"
+    // Exit 0 while a camera obsbot4linux supports is plugged in; enumerates only, no daemon.
+    // Only used when the icon should hide without a camera; an empty command keeps it visible.
+    visibilityCommand: hideWithoutCamera ? "obsbot4linux detect >/dev/null" : ""
     visibilityInterval: 5
 
     Process {
@@ -354,7 +357,7 @@ PluginComponent {
 
     // Control Center tile: the icon toggles sleep/wake. Larger tiles and the detail page show
     // the tracking card. Control Center runs its own instance of this component.
-    ccWidgetIcon: root.live ? "videocam" : "videocam_off"
+    ccWidgetIcon: !root.available ? "usb_off" : root.live ? "videocam" : "videocam_off"
     ccWidgetPrimaryText: "OBSBOT Control"
     ccWidgetSecondaryText: root.summary
     ccWidgetIsActive: root.awake
