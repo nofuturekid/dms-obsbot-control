@@ -3,6 +3,24 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.16.0] - 2026-10-25
+
+### Added
+
+- Zone card: "Go to return position" moves the camera to the zone return position, and
+  a line shows that position (pan, tilt, zoom) as the camera reports it.
+
+### Changed
+
+- The Zone card shows the area the camera reports (obsbot4linux 0.5.0) instead of the
+  last one the widget set; the plugin setting `zoneArea` is no longer used.
+- Needs obsbot4linux 0.5.0 or newer.
+
+### Fixed
+
+- "Return here" moved the camera to its start pose instead of setting the zone return
+  position (#29). With obsbot4linux 0.5.0 it stores the current pose.
+
 ## [0.15.0] - 2026-10-25
 
 ### Added

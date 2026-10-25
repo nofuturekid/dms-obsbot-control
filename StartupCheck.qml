@@ -2,10 +2,11 @@ import QtQuick
 import qs.Common
 
 // Dependency gate: the plugin only activates when obsbot4linux is installed and new enough
-// (0.3.1 detects streaming in the kernel driver, so every app counts).
+// (0.3.1 detects streaming in the kernel driver, so every app counts; 0.5.0 reads the zone
+// settings from the camera and sets the zone return position for real).
 // The camera itself is not required, the widget copes with it being unplugged.
 QtObject {
-    readonly property var minVersion: [0, 3, 1]
+    readonly property var minVersion: [0, 5, 0]
     readonly property string releases: "https://github.com/nofuturekid/obsbot4linux/releases"
 
     // "obsbot4linux 0.2.0" -> [0, 2, 0]; null when there is no version in the text

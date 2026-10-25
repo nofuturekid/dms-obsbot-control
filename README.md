@@ -38,8 +38,8 @@ join their default column at the end.
 - framing: pan/tilt d-pad with live pose and fine steps, center, zoom; a manual
   move switches tracking to Static
 - zone: zone tracking on/off, the area (pan and tilt range,
-  "Full area") and "Return here"; the camera cannot report the area, so the card shows
-  the last one set. Leaving the area stops tracking (Static, back to the return
+  "Full area"), the return position with "Return here" (current pose) and "Go to return
+  position", all read back from the camera. Leaving the area stops tracking (Static, back to the return
   position) unless "Follow new targets" is on, then the camera waits for the next person
 - picture: HDR, exposure Global / Face / Custom (exposure time and gain)
 - camera: field of view, status LED, mirror, invert
@@ -54,13 +54,13 @@ join their default column at the end.
 
 Bar icon interactions:
 
-| Input | Action |
-| --- | --- |
-| Left click | Open the popout |
-| Right click | Wake / sleep the camera |
+| Input        | Action                                                                                 |
+| ------------ | -------------------------------------------------------------------------------------- |
+| Left click   | Open the popout                                                                        |
+| Right click  | Wake / sleep the camera                                                                |
 | Middle click | Tracking on/off: Static, and back to the last other mode (Normal Tracking if none yet) |
-| Mouse wheel | Zoom in / out by 0.1 per notch, 1.0 to 4.0, while the camera is awake |
-| Hover | Tooltip with the state, e.g. "Tiny 2 Lite · Awake · Static" |
+| Mouse wheel  | Zoom in / out by 0.1 per notch, 1.0 to 4.0, while the camera is awake                  |
+| Hover        | Tooltip with the state, e.g. "Tiny 2 Lite · Awake · Static"                            |
 
 On air: a red dot on the bar icon shows whenever an application streams from the
 camera (a browser, OBS, ffmpeg, the widget's own preview). The tooltip and the
@@ -77,11 +77,11 @@ Settings page: a tracking mode applied whenever the camera wakes up, and switche
 for "Mouse wheel zooms" and "Middle click toggles tracking" (both on by default).
 Right click is always sleep/wake. Further switches, all applied at once:
 
-| Setting | Key | Default |
-| --- | --- | --- |
-| Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera` | off |
-| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only | `statusTextInBar` | off |
-| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Picture, Image, Audio, Gestures, Factory reset | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on |
+| Setting                                                                                                                                                         | Key                                                                                                                                                       | Default |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera`                                                                                                                                       | off     |
+| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only                   | `statusTextInBar`                                                                                                                                         | off     |
+| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Picture, Image, Audio, Gestures, Factory reset                                                   | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on      |
 
 The card switches affect the popout only (not the bar icon actions or the Control
 Center tile). A card the connected camera does not support stays hidden whatever its
@@ -117,7 +117,7 @@ camera is plugged in.
 
 ## Install
 
-Needs `obsbot4linux` 0.3.1 or newer on PATH; the plugin checks this when it is
+Needs `obsbot4linux` 0.5.0 or newer on PATH; the plugin checks this when it is
 enabled and refuses to activate without it (the camera itself does not have to
 be plugged in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its

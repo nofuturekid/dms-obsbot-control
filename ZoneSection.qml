@@ -2,26 +2,39 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Zone tracking: stay within an area, return to a chosen position. The camera reports only
-// whether zone tracking is on; follow is remembered by obsbot4linux (state.zone_follow) and
-// the area has no readback, so the widget keeps the last area it set in its plugin settings.
+// Zone tracking: stay within an area, return to a chosen position. obsbot4linux 0.5.0 reads
+// the area, follow and the return position from the camera (status key `zone`).
 SectionCard {
     id: section
 
     property var ctl
 
     readonly property var fullArea: [-100, 100, -30, 30]
-    // [pan from, pan to, tilt from, tilt to]
-    readonly property var savedArea: {
-        const saved = ctl.pluginData?.zoneArea;
-        return Array.isArray(saved) && saved.length === 4 && saved.every(v => Number.isFinite(v)) ? saved : fullArea;
-    }
-    property int panMin: savedArea[0]
-    property int panMax: savedArea[1]
-    property int tiltMin: savedArea[2]
-    property int tiltMax: savedArea[3]
+    readonly property var zone: ctl.cam.zone ?? null
+    // [pan from, pan to, tilt from, tilt to] as the camera reports it
+    readonly property var cameraArea: zone ? [zone.pan_min, zone.pan_max, zone.tilt_min, zone.tilt_max].map(v => Math.round(v)) : fullArea
+    property int panMin: cameraArea[0]
+    property int panMax: cameraArea[1]
+    property int tiltMin: cameraArea[2]
+    property int tiltMax: cameraArea[3]
+    // While a slider is dragged the camera's (older) area must not pull it back
+    property bool editing: false
+    readonly property var returnPos: zone?.return ?? null
     readonly property bool zoneOn: ctl.tracking.zone_tracking === true
     readonly property bool fullAreaSet: panMin === fullArea[0] && panMax === fullArea[1] && tiltMin === fullArea[2] && tiltMax === fullArea[3]
+
+    onCameraAreaChanged: {
+        if (editing)
+            return;
+        panMin = cameraArea[0];
+        panMax = cameraArea[1];
+        tiltMin = cameraArea[2];
+        tiltMax = cameraArea[3];
+        panMinSlider.sync();
+        panMaxSlider.sync();
+        tiltMinSlider.sync();
+        tiltMaxSlider.sync();
+    }
 
     function num(v) {
         return String(v).replace("-", "−");
@@ -32,6 +45,7 @@ SectionCard {
 
     // Keeps from < to; the slider that was dragged past the other one stops at it
     function setArea(which, value) {
+        editing = true;
         if (which === "panMin")
             panMin = Math.min(value, panMax - 1);
         else if (which === "panMax")
@@ -47,8 +61,8 @@ SectionCard {
     }
 
     function sendArea() {
-        ctl.send(["zone", "area", "--pan", panMin, panMax, "--tilt", tiltMin, tiltMax], "Setting zone area", undefined);
-        ctl.pluginService?.savePluginData(ctl.pluginId, "zoneArea", [panMin, panMax, tiltMin, tiltMax]);
+        ctl.send(["zone", "area", "--pan", panMin, panMax, "--tilt", tiltMin, tiltMax], "Setting zone area", { zone: { pan_min: panMin, pan_max: panMax, tilt_min: tiltMin, tilt_max: tiltMax } });
+        editing = false;
     }
 
     title: "Zone"
@@ -138,6 +152,21 @@ SectionCard {
             iconName: "my_location"
             onClicked: section.ctl.send(["zone", "return-here"], "Setting the zone return position")
         }
+
+        DButton {
+            text: "Go to return position"
+            iconName: "u_turn_left"
+            visible: section.ctl.has("zone_return")
+            onClicked: section.ctl.send(["zone", "return-go"], "Moving to the zone return position")
+        }
+    }
+
+    StyledText {
+        width: parent.width
+        visible: section.returnPos !== null
+        text: section.returnPos ? "Return position: pan " + section.deg(Math.round(section.returnPos.pan)) + " · tilt " + section.deg(Math.round(section.returnPos.tilt)) + " · zoom " + Number(section.returnPos.zoom).toFixed(1) + "×" : ""
+        color: Theme.surfaceVariantText
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     StyledText {
