@@ -151,7 +151,9 @@ SectionCard {
     StyledText {
         width: parent.width
         wrapMode: Text.WordWrap
-        text: "Tracking stops (Static) when the target leaves the area."
+        text: section.ctl.cam.state?.zone_follow === true
+            ? "When the target leaves the area, the camera keeps tracking and takes the next person who enters it."
+            : "When the target leaves the area, tracking stops (Static) and the camera returns to its return position."
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }

@@ -183,8 +183,8 @@ PluginComponent {
         openRight = "";
     }
     readonly property var defaultOrder: ({
-            Left: ["preview", "framing", "camera", "sleep"],
-            Right: ["tracking", "zone", "picture", "image", "audio", "gestures", "reset"]
+            Left: ["preview", "framing", "camera", "sleep", "zone"],
+            Right: ["tracking", "picture", "image", "audio", "gestures", "reset"]
         })
     property var cardOrder: defaultOrder
     // Replaced only when the order really differs, so other plugin settings changing

@@ -13,7 +13,7 @@ from obsbot4linux, and shows only the cards the camera can do (its
 `capabilities`).
 
 The popout is 760 px wide with two columns of cards, each as high as its content.
-Left: Preview, Framing, Camera, Sleep. Right: Tracking, Zone, Picture, Image,
+Left: Preview, Framing, Camera, Sleep, Zone. Right: Tracking, Picture, Image,
 Audio, Gestures, Factory reset. Collapsible cards start closed, one open per column, and
 a closed card lists its settings under the title.
 
@@ -37,7 +37,8 @@ join their default column at the end.
   move switches tracking to Static
 - zone: zone tracking on/off, follow new targets, the area (pan and tilt range,
   "Full area") and "Return here"; the camera cannot report the area, so the card shows
-  the last one set
+  the last one set. Leaving the area stops tracking (Static, back to the return
+  position) unless "Follow new targets" is on, then the camera waits for the next person
 - picture: HDR, exposure Global / Face / Custom (exposure time and gain)
 - camera: field of view, status LED, mirror, invert
 - sleep: auto-sleep and the picture while asleep

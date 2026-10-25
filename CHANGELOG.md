@@ -7,14 +7,17 @@ All notable changes to this widget. The format follows
 
 ### Added
 
-- Zone card (right column, after Tracking; only for cameras with zone tracking):
-  switches for "Zone tracking" (read back from the camera) and "Follow new targets",
-  the area as pan from/to (-100 to 100°) and tilt from/to (-30 to 30°) sliders
-  that send `zone area` once released, "Full area", and "Return here" (the current
-  pose becomes the position zone tracking returns to). A hint says that tracking
-  switches to Static when the target leaves the area. The camera cannot report the
-  area, so the widget shows the last one it set (plugin setting `zoneArea`); the
-  follow switch shows the value obsbot4linux remembers. Card switch `cardZone`.
+- Zone card (left column, last; only for cameras with zone tracking): switches for
+  "Zone tracking" (read back from the camera) and "Follow new targets", the area
+  as pan from/to (-100 to 100°) and tilt from/to (-30 to 30°) sliders that send
+  `zone area` once released, "Full area", and "Return here" (the current pose
+  becomes the position zone tracking returns to). A hint explains what happens
+  when the target leaves the area: without "Follow new targets" tracking switches
+  to Static and the camera returns to the return position; with it, the camera
+  keeps tracking and takes the next person who enters the area (both measured on a
+  Tiny 2 Lite). The camera cannot report the area, so the widget shows the last
+  one it set (plugin setting `zoneArea`); the follow switch shows the value
+  obsbot4linux remembers. Card switch `cardZone`.
 
 ## [0.13.0] - 2026-10-25
 
