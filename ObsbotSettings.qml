@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import qs.DCommon.Widgets
 import qs.Modules.Plugins
 
 PluginSettings {
@@ -31,6 +32,13 @@ PluginSettings {
     }
 
     ToggleSetting {
+        settingKey: "statusTextInBar"
+        label: "Status text in the bar"
+        description: "Shows Static, Tracking, Asleep or Offline next to the icon on a horizontal bar; the pill keeps its width"
+        defaultValue: false
+    }
+
+    ToggleSetting {
         settingKey: "wheelZoom"
         label: "Mouse wheel zooms"
         description: "Scrolling over the bar icon changes the zoom by 0.1 per notch"
@@ -41,6 +49,83 @@ PluginSettings {
         settingKey: "middleClickTracking"
         label: "Middle click toggles tracking"
         description: "Switches between Static and the last tracking mode; right click always wakes or sleeps the camera"
+        defaultValue: true
+    }
+
+    StyledText {
+        width: parent.width
+        text: "Popout cards"
+        font.pixelSize: Theme.fontSizeLarge
+        font.weight: Font.Bold
+        color: Theme.surfaceText
+        topPadding: Theme.spacingL
+    }
+
+    StyledText {
+        width: parent.width
+        text: "Choose which cards the popout shows. A card the connected camera does not support stays hidden either way. The bar icon and the Control Center tile are not affected."
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+        wrapMode: Text.WordWrap
+    }
+
+    ToggleSetting {
+        settingKey: "cardPreview"
+        label: "Preview"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardFraming"
+        label: "Framing"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardCamera"
+        label: "Camera"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardSleep"
+        label: "Sleep"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardTracking"
+        label: "Tracking"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardPicture"
+        label: "Picture"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardImage"
+        label: "Image"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardAudio"
+        label: "Audio"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardGestures"
+        label: "Gestures"
+        defaultValue: true
+    }
+
+    ToggleSetting {
+        settingKey: "cardReset"
+        label: "Factory reset"
         defaultValue: true
     }
 }

@@ -11,27 +11,83 @@ Item {
 
     property var ctl
 
-    implicitWidth: ctl.iconSize
+    // Optional status text slot beside the icon, horizontal bars only
+    readonly property bool slotShown: ctl.statusTextInBar && !ctl.isVertical
+
+    implicitWidth: row.implicitWidth
     implicitHeight: ctl.iconSize
 
-    DIcon {
+    Row {
+        id: row
         anchors.centerIn: parent
-        // unplugged/unreachable gets its own icon, so it is not mistaken for asleep (videocam_off)
-        name: !pill.ctl.available ? "usb_off" : pill.ctl.live ? "videocam" : "videocam_off"
-        color: pill.ctl.live ? Theme.primary : Theme.surfaceVariantText
-        // dimmed while the camera is unplugged or unreachable
-        opacity: pill.ctl.available ? 1 : 0.38
-        size: pill.ctl.iconSize
+        spacing: Theme.spacingXS
 
-        // On-air dot: some application (the preview included) is reading the camera
-        Rectangle {
-            visible: pill.ctl.streaming
-            width: Math.round(pill.ctl.iconSize / 4)
-            height: width
-            radius: width / 2
-            anchors.top: parent.top
-            anchors.right: parent.right
-            color: Theme.error
+        DIcon {
+            // unplugged/unreachable gets its own icon, so it is not mistaken for asleep (videocam_off)
+            name: !pill.ctl.available ? "usb_off" : pill.ctl.live ? "videocam" : "videocam_off"
+            color: pill.ctl.live ? Theme.primary : Theme.surfaceVariantText
+            // dimmed while the camera is unplugged or unreachable
+            opacity: pill.ctl.available ? 1 : 0.38
+            size: pill.ctl.iconSize
+
+            // On-air dot: some application (the preview included) is reading the camera
+            Rectangle {
+                visible: pill.ctl.streaming
+                width: Math.round(pill.ctl.iconSize / 4)
+                height: width
+                radius: width / 2
+                anchors.top: parent.top
+                anchors.right: parent.right
+                color: Theme.error
+            }
+        }
+
+        // Fixed slot, as wide as the widest possible text, so the pill never changes width
+        // (also not while the text is empty). The hidden texts share the visible one's font.
+        Item {
+            visible: pill.slotShown
+            width: Math.ceil(Math.max(m1.implicitWidth, m2.implicitWidth, m3.implicitWidth, m4.implicitWidth))
+            height: label.implicitHeight
+            anchors.verticalCenter: parent.verticalCenter
+
+            StyledText {
+                id: m1
+                visible: false
+                text: "Static"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: m2
+                visible: false
+                text: "Tracking"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: m3
+                visible: false
+                text: "Asleep"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: m4
+                visible: false
+                text: "Offline"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: label
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: pill.ctl.pillText
+                font.pixelSize: pill.ctl.textSize
+                color: pill.ctl.live ? Theme.widgetTextColor : Theme.surfaceVariantText
+                // dimmed like the usb_off icon
+                opacity: pill.ctl.available ? 1 : 0.38
+                wrapMode: Text.NoWrap
+            }
         }
     }
 

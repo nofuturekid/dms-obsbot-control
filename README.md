@@ -60,7 +60,17 @@ also has the tracked hand.
 
 Settings page: a tracking mode applied whenever the camera wakes up, and switches
 for "Mouse wheel zooms" and "Middle click toggles tracking" (both on by default).
-Right click is always sleep/wake.
+Right click is always sleep/wake. Further switches, all applied at once:
+
+| Setting | Key | Default |
+| --- | --- | --- |
+| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only | `statusTextInBar` | off |
+| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Picture, Image, Audio, Gestures, Factory reset | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on |
+
+The card switches affect the popout only (not the bar icon actions or the Control
+Center tile). A card the connected camera does not support stays hidden whatever its
+switch says. Hidden cards close up; if a whole column is empty the popout narrows
+from 760 px to the one column that is left.
 
 Camera access goes through [OBSBot4Linux](https://github.com/nofuturekid/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event

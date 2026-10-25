@@ -44,6 +44,13 @@ PluginComponent {
     readonly property bool middleClickTracking: pluginData?.middleClickTracking ?? true
     // Settings page: hide the bar icon while no supported camera is plugged in (default: show it dimmed)
     readonly property bool hideWithoutCamera: pluginData?.hideWithoutCamera ?? false
+    // Settings page: short status text next to the bar icon (horizontal bars only), off by default
+    readonly property bool statusTextInBar: pluginData?.statusTextInBar ?? false
+    // Settings page: one switch per popout card, all on by default. Popout only; the bar icon
+    // and the Control Center tile do not look at them.
+    function cardEnabled(card) {
+        return pluginData?.["card" + card] ?? true;
+    }
     // Last tracking mode other than Static (ai_mode key), what the middle click goes back to
     readonly property string lastTrackingMode: pluginData?.lastTrackingMode ?? "normal"
 
@@ -91,6 +98,9 @@ PluginComponent {
     readonly property bool awake: available && status.asleep === false
     readonly property string aiMode: trackingModes.find(m => m.key === status.ai_mode)?.label ?? ""
     readonly property string speed: speeds.find(s => s.arg === status.tracking_speed)?.label ?? ""
+
+    // Bar pill text: tracking state while awake, "Asleep", "Offline" without a camera
+    readonly property string pillText: !available ? "Offline" : !awake ? "Asleep" : status.ai_mode === "static" ? "Static" : "Tracking"
 
     function has(name) {
         return (cam.capabilities ?? []).indexOf(name) >= 0;
@@ -351,9 +361,12 @@ PluginComponent {
             watch.running = true;
     }
 
-    // Layout 1b, static: always two columns (picture | behaviour); the preview area stays
-    // in place and is black while the preview is off
-    popoutWidth: 760
+    // Layout 1b: two columns (picture | behaviour); the preview area stays in place and is
+    // black while the preview is off. Cards switched off on the settings page (or not
+    // supported by the camera) close up; a column left without cards drops out and the
+    // popout narrows to the one column that is left. The popout reports the count.
+    property int shownColumns: 2
+    popoutWidth: shownColumns >= 2 ? 760 : 380
 
     // The bar draws the pill; plugins only provide the content (same as the built-in widgets).
     // Right click is sleep/wake; left click opens the popout.
@@ -407,6 +420,12 @@ PluginComponent {
 
             Component.onCompleted: root.refresh()
 
+            Binding {
+                target: root
+                property: "shownColumns"
+                value: (leftColumn.hasCards ? 1 : 0) + (rightColumn.hasCards ? 1 : 0)
+            }
+
             // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
             // and the header stays in place
             readonly property real maxBodyHeight: Math.round(Screen.height * 0.85) - header.height - Theme.spacingM
@@ -439,20 +458,24 @@ PluginComponent {
                     // follows the one above it directly
                     Row {
                         width: parent.width
-                        spacing: Theme.spacingM
+                        spacing: leftColumn.hasCards && rightColumn.hasCards ? Theme.spacingM : 0
 
                         Column {
                             id: leftColumn
-                            width: (parent.width - parent.spacing) / 2
+                            // Column skips hidden cards; without any it drops out
+                            readonly property bool hasCards: visibleChildren.length > 0
+                            width: !hasCards ? 0 : rightColumn.hasCards ? (parent.width - parent.spacing) / 2 : parent.width
                             spacing: Theme.spacingM
 
                             PreviewPane {
                                 width: parent.width
+                                visible: root.cardEnabled("Preview")
                                 ctl: root
                             }
 
                             FramingSection {
                                 width: parent.width
+                                visible: root.cardEnabled("Framing")
                                 ctl: root
                             }
 
@@ -474,21 +497,26 @@ PluginComponent {
                         }
 
                         Column {
-                            width: parent.width - leftColumn.width - parent.spacing
+                            id: rightColumn
+                            readonly property bool hasCards: visibleChildren.length > 0
+                            width: !hasCards ? 0 : leftColumn.hasCards ? parent.width - leftColumn.width - parent.spacing : parent.width
                             spacing: Theme.spacingM
 
                             TrackingSection {
                                 width: parent.width
+                                visible: root.cardEnabled("Tracking")
                                 ctl: root
                             }
 
                             PictureSection {
                                 width: parent.width
+                                visible: root.cardEnabled("Picture")
                                 ctl: root
                             }
 
                             ImageSection {
                                 width: parent.width
+                                visible: root.cardEnabled("Image")
                                 ctl: root
                                 controlled: true
                                 expanded: root.openRight === "image"

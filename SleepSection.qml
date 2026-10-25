@@ -13,7 +13,7 @@ SectionCard {
     title: "Sleep"
     collapsible: true
     expanded: false
-    visible: ctl.has("auto_sleep") || ctl.has("sleep_background")
+    visible: ctl.cardEnabled("Sleep") && (ctl.has("auto_sleep") || ctl.has("sleep_background"))
     summary: [ctl.status.auto_sleep_enabled === undefined ? "" : "Auto-sleep " + (ctl.status.auto_sleep_enabled ? ctl.status.auto_sleep_seconds + " s" : "off"), ctl.status.sleep_background ? "background " + ctl.status.sleep_background : ""].filter(s => s !== "").join(" · ")
     // Unlike the other settings these matter (and work) while the camera is asleep
     enabled: ctl.available

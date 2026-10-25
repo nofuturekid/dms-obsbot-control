@@ -3,6 +3,24 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.12.0] - 2026-10-25
+
+### Added
+
+- Settings page, "Popout cards": one switch per popout card (Preview, Framing,
+  Camera, Sleep, Tracking, Picture, Image, Audio, Gestures, Factory reset), all
+  on by default. Hidden cards leave the popout only; the bar icon actions and the
+  Control Center tile are unaffected, and a card the connected camera does not
+  support stays hidden whatever the switch says. The cards below a hidden one move
+  up; when a whole column is empty the popout shrinks to the remaining column
+  (380 px instead of 760 px). Changes apply at once.
+- Settings page, "Status text in the bar" (off by default): "Static" or
+  "Tracking" next to the bar icon while the camera is awake, "Asleep" while the
+  lens is stowed, "Offline" (dimmed) without a camera. The text sits in a fixed
+  slot as wide as the longest text, so the pill never changes width. Horizontal
+  bars only; a vertical bar keeps the icon alone. Size and colour follow the bar's
+  theme.
+
 ## [0.11.1] - 2026-10-25
 
 ### Fixed

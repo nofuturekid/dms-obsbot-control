@@ -20,7 +20,7 @@ SectionCard {
     title: "Camera"
     collapsible: true
     expanded: false
-    visible: ["fov", "led", "mirror", "invert"].some(c => ctl.has(c))
+    visible: ctl.cardEnabled("Camera") && (["fov", "led", "mirror", "invert"].some(c => ctl.has(c)))
     summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : "", ctl.status.mirror !== undefined ? "mirror " + (ctl.status.mirror ? "on" : "off") : "", ctl.tracking.invert !== undefined ? "invert " + (ctl.tracking.invert ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available
