@@ -1,8 +1,8 @@
 {
   "id": "obsbotControl",
   "name": "OBSBOT Control",
-  "description": "Bar widget for the OBSBOT Tiny 2 Lite webcam: sleep/wake, AI tracking mode and speed, HDR, exposure, zoom, pan/tilt, image adjustments and a live preview",
-  "version": "0.8.0",
+  "description": "Bar widget for OBSBOT webcams, built on obsbot4linux (currently the Tiny 2 Lite): sleep/wake, AI tracking mode and speed, HDR, exposure, zoom, pan/tilt, image adjustments and a live preview",
+  "version": "0.9.0",
   "author": "nofuturekid",
   "license": "GPL-3.0-or-later",
   "icon": "videocam",
@@ -16,7 +16,7 @@
   "settings": "./ObsbotSettings.qml",
   "startupCheck": "./StartupCheck.qml",
   "dependencies": [
-    "obsbot4linux",
+    "obsbot4linux >= 0.2.0",
     "qt6-multimedia"
   ],
   "permissions": [

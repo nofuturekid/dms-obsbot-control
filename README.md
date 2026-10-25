@@ -1,12 +1,16 @@
 # dms-obsbot-control
 
-DankMaterialShell bar widget for the OBSBOT Tiny 2 Lite webcam.
+DankMaterialShell bar widget for OBSBOT webcams.
 
 ![Popout with the preview off](assets/screenshot.png)
 
-Only the **Tiny 2 Lite** is supported: the widget finds the camera by its
-`/dev/v4l/by-id` name and controls it through obsbot4linux. Other OBSBOT models
-are not detected.
+## Supported cameras
+
+The widget supports every camera that
+[obsbot4linux supports](https://github.com/nofuturekid/obsbot4linux#supported-cameras),
+currently the **OBSBOT Tiny 2 Lite**. It takes the camera's name and video device
+from obsbot4linux, and shows only the cards the camera can do (its
+`capabilities`).
 
 The popout is 760 px wide with two columns of cards, each as high as its content.
 Left: Preview, Framing, Camera, Sleep. Right: Tracking, Picture, Image, Audio,
@@ -54,14 +58,14 @@ Right click is always sleep/wake.
 Camera access goes through [OBSBot4Linux](https://github.com/nofuturekid/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event
 (also changes made from the CLI or by the camera itself) and sends commands on
-its stdin. Desk and Whiteboard tracking are not available with obsbot4linux. The bar pill is hidden while no OBSBOT Tiny 2 Lite
-is plugged in.
+its stdin. Desk and Whiteboard tracking are not available with obsbot4linux. The bar pill is hidden while no supported
+camera is plugged in.
 
 ## Install
 
-Needs `obsbot4linux` on PATH; the plugin checks this when it is enabled and
-refuses to activate without it (the camera itself does not have to be plugged
-in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
+Needs `obsbot4linux` 0.2.0 or newer on PATH; the plugin checks this when it is
+enabled and refuses to activate without it (the camera itself does not have to
+be plugged in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its
 [releases page](https://github.com/nofuturekid/obsbot4linux/releases). The live preview
 also needs `qt6-multimedia`; without it the preview frame says so and every

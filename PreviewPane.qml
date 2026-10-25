@@ -22,11 +22,13 @@ SectionCard {
         : !ctl.available
         ? (ctl.toolMissing
             ? { icon: "terminal", title: "Control tool not found", body: "obsbot4linux could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
-            : { icon: "usb_off", title: "Camera not connected", body: "The Tiny 2 Lite doesn't respond on USB. Plug it back in. The bar icon hides while it is gone.", button: "Retry", buttonIcon: "refresh" })
+            : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in. The bar icon hides while it is gone.", button: "Retry", buttonIcon: "refresh" })
         : videoMissing
             ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }
         : !ctl.awake
             ? { icon: "videocam_off", title: "Camera is asleep", body: "Lens is stowed face-down. Wake it to preview, track or adjust the picture.", button: "Wake camera", buttonIcon: "videocam" }
+        : !ctl.previewReady
+            ? { icon: "hourglass_empty", title: "Waiting for the camera", body: "The preview starts once the camera's video device is known.", button: "", buttonIcon: "" }
             : { icon: "visibility_off", title: "Preview is off", body: "Turn it on to see the picture while you adjust it. While it's on, no other app can use the camera.", button: "Start preview", buttonIcon: "play_arrow" }
 
     function hintAction() {
@@ -38,7 +40,7 @@ SectionCard {
             ctl.previewOn = false;
         else if (!ctl.awake)
             ctl.setAwake(true);
-        else
+        else if (ctl.previewReady)
             ctl.previewOn = true;
     }
 
@@ -57,6 +59,13 @@ SectionCard {
             active: pane.ctl.interactionActive
             asynchronous: true
             source: Qt.resolvedUrl("PreviewVideo.qml")
+        }
+
+        Binding {
+            target: videoLoader.item
+            property: "node"
+            value: pane.ctl.videoNode
+            when: videoLoader.status === Loader.Ready
         }
 
         Binding {
@@ -110,6 +119,7 @@ SectionCard {
 
             DButton {
                 anchors.horizontalCenter: parent.horizontalCenter
+                visible: pane.hint.button !== ""
                 text: pane.hint.button
                 iconName: pane.hint.buttonIcon
                 onClicked: pane.hintAction()

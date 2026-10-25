@@ -30,9 +30,6 @@ PluginComponent {
         { label: "Sport", arg: "sport" }
     ]
 
-    // Only used to hide the bar pill while the camera is unplugged
-    readonly property string device: "/dev/v4l/by-id/usb-Remo_Tech_Co.__Ltd._OBSBOT_Tiny_2_Lite-video-index0"
-
     readonly property var exposureModes: [
         { label: "Global", arg: "global" },
         { label: "Face", arg: "face" },
@@ -70,6 +67,23 @@ PluginComponent {
     readonly property real tilt: cam.pose?.tilt ?? cam.state?.gimbal?.tilt ?? 0
     readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
 
+    // Camera model and V4L2 by-id path, both null in the state while no supported camera is there
+    readonly property string model: cam.model ?? ""
+    readonly property string device: cam.device ?? ""
+    // /dev/videoN behind `device`, what Qt Multimedia calls the camera's id
+    property string videoNode: ""
+    readonly property bool previewReady: device !== "" && videoNode !== ""
+    onDeviceChanged: {
+        videoNode = "";
+        if (device === "")
+            return;
+        const wanted = device;
+        Proc.runCommand("obsbotControl.videoNode", ["readlink", "-f", wanted], (stdout, exitCode) => {
+            if (exitCode === 0 && root.device === wanted)
+                root.videoNode = stdout.trim();
+        });
+    }
+
     property bool toolMissing: false
     readonly property bool available: cam.available === true
     readonly property bool awake: available && status.asleep === false
@@ -101,7 +115,7 @@ PluginComponent {
         return awake ? "Awake · " + aiMode : "Asleep · lens stowed";
     }
     // Header, pill tooltip and Control Center tile all show this line
-    readonly property string summary: "Tiny 2 Lite · " + statusText
+    readonly property string summary: (model !== "" ? model : "OBSBOT camera") + " · " + statusText
 
     // DMS only hides the popout, its content stays alive; switch the preview off on close
     onInteractionActiveChanged: {
@@ -284,7 +298,8 @@ PluginComponent {
         return autoSleepTimes.findIndex(t => t.arg === String(status.auto_sleep_seconds));
     }
 
-    visibilityCommand: "test -e " + device
+    // Exit 0 while a camera obsbot4linux supports is plugged in; enumerates only, no daemon
+    visibilityCommand: "obsbot4linux detect >/dev/null"
     visibilityInterval: 5
 
     Process {

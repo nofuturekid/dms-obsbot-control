@@ -3,6 +3,20 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.0] - 2026-10-25
+
+### Changed
+
+- The widget no longer assumes a camera model. The name in the popout header,
+  the bar tooltip and the Control Center tile, and the video device the
+  preview opens, come from obsbot4linux; "OBSBOT camera" is shown until it
+  reports a model.
+- The bar icon is shown while `obsbot4linux detect` finds a supported camera,
+  instead of looking for the Tiny 2 Lite's device file.
+- The "Camera not connected" hint no longer names a model.
+- Requires obsbot4linux 0.2.0 or newer. The startup check refuses older
+  versions and points to the releases page.
+
 ## [0.8.0] - 2026-10-25
 
 ### Added
