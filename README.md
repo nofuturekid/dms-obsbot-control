@@ -8,21 +8,28 @@ Only the **Tiny 2 Lite** is supported: the widget finds the camera by its
 `/dev/v4l/by-id` name and controls it through obsbot4linux. Other OBSBOT models
 are not detected.
 
-The popout follows layout 2a from the Claude Design study: two columns at
-760 px in every state, so it never jumps. Left: Preview, Framing, Picture
-(HDR + exposure). Right: Tracking and Image adjustments. Each section is a card.
+The popout is 760 px wide with two columns of cards, each as high as its content.
+Left: Preview, Framing, Camera, Sleep. Right: Tracking, Picture, Image, Audio,
+Gestures, Factory reset. Collapsible cards start closed, one open per column, and
+a closed card lists its settings under the title.
 
-- header: status line with a spinner while a command is in flight, Awake switch
+- header: OBSBOT Control, the camera model and its state, a spinner while a
+  command is in flight, Awake switch
 - preview frame (16:9, Qt Multimedia at 720p): live picture while the preview
   runs (no other app can use the camera meanwhile; it stops when the popout
   closes), otherwise a hint with one action: Start preview, Wake camera, or
   Retry when the camera or obsbot4linux can't be reached
-- AI tracking mode and speed
-- framing: pan/tilt d-pad and center, zoom; a manual move switches tracking to
-  Static
-- HDR, exposure Global/Face (remembered, the camera does not report it)
+- tracking: AI mode, speed, tracked hand
+- framing: pan/tilt d-pad with live pose and fine steps, center, zoom; a manual
+  move switches tracking to Static
+- picture: HDR, exposure Global / Face / Custom (exposure time and gain)
+- camera: field of view, status LED, mirror, invert
+- sleep: auto-sleep and the picture while asleep
 - image adjustments: brightness, contrast, saturation, sharpness, backlight
   compensation, reset to defaults
+- audio: noise reduction, pickup distance, automatic gain, microphone while asleep
+- gestures: gesture switches and zoom ratio
+- factory reset with a two-click confirmation
 - bar icon: videocam (accent) awake, videocam_off asleep, a dot while the
   preview holds the camera, hidden while unplugged
 
