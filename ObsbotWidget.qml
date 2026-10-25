@@ -564,28 +564,6 @@ PluginComponent {
                     width: body.width
                     spacing: Theme.spacingM
 
-                    Row {
-                        width: parent.width
-                        spacing: Theme.spacingM
-                        visible: root.arranging
-
-                        StyledText {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - resetButton.width - parent.spacing
-                            text: "Drag a card by its handle to move it."
-                            color: Theme.surfaceVariantText
-                            font.pixelSize: Theme.fontSizeSmall
-                            wrapMode: Text.WordWrap
-                        }
-
-                        DButton {
-                            id: resetButton
-                            text: "Reset layout"
-                            iconName: "restart_alt"
-                            onClicked: root.resetLayout()
-                        }
-                    }
-
                     // Two independent columns; every card is as high as its content and
                     // follows the one above it directly
                     Item {

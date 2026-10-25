@@ -24,7 +24,7 @@ SectionCard {
     summary: (onCount === 0 ? "All off" : gestures.filter(g => ctl.tracking[g.key] === true).map(g => g.label).join(", ") + " on") + (ctl.tracking.gesture_zoom_ratio !== undefined ? " · zoom ratio " + ctl.tracking.gesture_zoom_ratio.toFixed(1) + "×" : "")
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available || arranging
-    opacity: ctl.available ? 1 : 0.38
+    opacity: ctl.available || arranging ? 1 : 0.38
 
     Repeater {
         model: section.gestures

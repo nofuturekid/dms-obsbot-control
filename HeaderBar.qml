@@ -2,7 +2,9 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Camera name, status line (with a spinner while a command is in flight) and the Awake switch
+// Camera name, status line (with a spinner while a command is in flight) and the Awake switch.
+// In arrange mode the status line becomes the hint and Reset layout takes the Awake switch's place,
+// so the header keeps its height and the cards below don't move.
 Item {
     id: bar
 
@@ -63,7 +65,7 @@ Item {
             StyledText {
                 anchors.verticalCenter: parent.verticalCenter
                 // the camera model, then its state: the title is the plugin's name
-                text: bar.ctl.summary
+                text: bar.ctl.arranging ? "Drag a card by its handle to move it." : bar.ctl.summary
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
@@ -73,8 +75,8 @@ Item {
     // Arrange mode of the popout cards (drag handles, Reset layout)
     DIconButton {
         id: editButton
-        anchors.right: awakeRow.visible ? awakeRow.left : parent.right
-        anchors.rightMargin: awakeRow.visible ? Theme.spacingM : 0
+        anchors.right: resetButton.visible ? resetButton.left : (awakeRow.visible ? awakeRow.left : parent.right)
+        anchors.rightMargin: resetButton.visible || awakeRow.visible ? Theme.spacingM : 0
         anchors.verticalCenter: parent.verticalCenter
         iconName: bar.ctl.arranging ? "check" : "edit"
         variant: bar.ctl.arranging ? "tonal" : "standard"
@@ -82,12 +84,24 @@ Item {
         onClicked: bar.ctl.arranging = !bar.ctl.arranging
     }
 
+    DButton {
+        id: resetButton
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        visible: bar.ctl.arranging
+        text: "Reset layout"
+        iconName: "restart_alt"
+        backgroundColor: Theme.surfaceContainerHighest
+        textColor: Theme.surfaceText
+        onClicked: bar.ctl.resetLayout()
+    }
+
     Row {
         id: awakeRow
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         spacing: Theme.spacingS
-        visible: bar.ctl.available
+        visible: bar.ctl.available && !bar.ctl.arranging
 
         StyledText {
             anchors.verticalCenter: parent.verticalCenter

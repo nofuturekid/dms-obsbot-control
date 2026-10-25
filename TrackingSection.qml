@@ -19,7 +19,7 @@ SectionCard {
     title: "Tracking"
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available || arranging
-    opacity: ctl.available ? 1 : 0.38
+    opacity: ctl.available || arranging ? 1 : 0.38
 
     DFilterChips {
         id: modeChips

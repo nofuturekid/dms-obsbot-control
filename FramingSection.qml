@@ -10,7 +10,7 @@ SectionCard {
 
     title: "Framing"
     enabled: ctl.live || arranging
-    opacity: ctl.live ? 1 : 0.38
+    opacity: ctl.live || arranging ? 1 : 0.38
 
     Row {
         width: parent.width
