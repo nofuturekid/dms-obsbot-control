@@ -393,10 +393,18 @@ PluginComponent {
         return autoSleepTimes.findIndex(t => t.arg === String(status.auto_sleep_seconds));
     }
 
-    // Exit 0 while a camera obsbot4linux supports is plugged in; enumerates only, no daemon.
-    // Only used when the icon should hide without a camera; an empty command keeps it visible.
-    visibilityCommand: hideWithoutCamera ? "obsbot4linux detect >/dev/null" : ""
-    visibilityInterval: 5
+    // The watcher's `available` drives the bar icon when it should hide without a camera. DMS only
+    // fades the pill out, the component and the watch process stay alive, so the icon returns when
+    // the camera is plugged in again.
+    function applyVisibility() {
+        if (hideWithoutCamera)
+            setVisibilityOverride(available);
+        else
+            clearVisibilityOverride();
+    }
+    onHideWithoutCameraChanged: applyVisibility()
+    onAvailableChanged: applyVisibility()
+    Component.onCompleted: applyVisibility()
 
     Process {
         id: watch
