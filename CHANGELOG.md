@@ -3,6 +3,17 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.0] - 2026-10-25
+
+### Added
+
+- A red on-air dot on the bar icon whenever any application streams from the
+  camera, the widget's own preview included (it replaces the white preview dot).
+  The tooltip and popout header append "On air: <apps>" (qs shows as "preview",
+  Chrome, Firefox and OBS by name), the Control Center tile "On air".
+- Requires obsbot4linux 0.3.0 or newer, which reports `streaming` and
+  `streaming_apps`; the startup check refuses older versions.
+
 ## [0.10.0] - 2026-10-25
 
 ### Changed

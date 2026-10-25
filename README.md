@@ -35,7 +35,7 @@ a closed card lists its settings under the title.
 - gestures: gesture switches and zoom ratio
 - factory reset with a two-click confirmation
 - bar icon: videocam (accent) awake, videocam_off asleep, usb_off dimmed while
-  unplugged (or hidden, see settings), a dot while the preview holds the camera
+  unplugged (or hidden, see settings), a red dot while any application streams from the camera
 
 Bar icon interactions:
 
@@ -46,6 +46,13 @@ Bar icon interactions:
 | Middle click | Tracking on/off: Static, and back to the last other mode (Normal Tracking if none yet) |
 | Mouse wheel | Zoom in / out by 0.1 per notch, 1.0 to 4.0, while the camera is awake |
 | Hover | Tooltip with the state, e.g. "Tiny 2 Lite · Awake · Static" |
+
+On air: a red dot on the bar icon shows whenever an application streams from the
+camera (a browser, OBS, ffmpeg, the widget's own preview). The tooltip and the
+popout header add "On air: Chrome" and the like, the Control Center tile "On air".
+This relies on obsbot4linux's detection of
+[streaming applications](https://github.com/nofuturekid/obsbot4linux#streaming-applications),
+which looks at processes that map the camera's capture buffers.
 
 Control Center tile: the icon wakes or sleeps the camera, the subtitle shows its
 state. A 4 × 4 tile shows the tracking modes and speed; the tile's detail page
@@ -63,7 +70,7 @@ camera is plugged in.
 
 ## Install
 
-Needs `obsbot4linux` 0.2.0 or newer on PATH; the plugin checks this when it is
+Needs `obsbot4linux` 0.3.0 or newer on PATH; the plugin checks this when it is
 enabled and refuses to activate without it (the camera itself does not have to
 be plugged in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its

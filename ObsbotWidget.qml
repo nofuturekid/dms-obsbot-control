@@ -116,8 +116,20 @@ PluginComponent {
             return pendingLabel + "…";
         return awake ? "Awake · " + aiMode : "Asleep · lens stowed";
     }
-    // Header, pill tooltip and Control Center tile all show this line
-    readonly property string summary: (model !== "" ? model : "OBSBOT camera") + " · " + statusText
+    // Any application reading the camera, the widget's own preview included (obsbot4linux 0.3.0)
+    readonly property bool streaming: cam.streaming === true
+    readonly property var streamingApps: cam.streaming_apps ?? []
+    readonly property var appNames: ({
+            "qs": "preview",
+            "chrome": "Chrome",
+            "chromium": "Chrome",
+            "firefox": "Firefox",
+            "obs": "OBS"
+        })
+
+    readonly property string baseSummary: (model !== "" ? model : "OBSBOT camera") + " · " + statusText
+    // Header and pill tooltip show this line
+    readonly property string summary: baseSummary + (streaming ? " · On air" + (streamingApps.length > 0 ? ": " + streamingApps.map(a => appNames[a] ?? a).join(", ") : "") : "")
 
     // DMS only hides the popout, its content stays alive; switch the preview off on close
     onInteractionActiveChanged: {
@@ -359,7 +371,7 @@ PluginComponent {
     // the tracking card. Control Center runs its own instance of this component.
     ccWidgetIcon: !root.available ? "usb_off" : root.live ? "videocam" : "videocam_off"
     ccWidgetPrimaryText: "OBSBOT Control"
-    ccWidgetSecondaryText: root.summary
+    ccWidgetSecondaryText: root.baseSummary + (root.streaming ? " · On air" : "")
     ccWidgetIsActive: root.awake
     onCcWidgetToggled: root.toggleAwake()
     ccExpandedMinimumHeight: Theme.listItemHeight * 3.5

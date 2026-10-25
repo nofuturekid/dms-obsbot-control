@@ -23,15 +23,15 @@ Item {
         opacity: pill.ctl.available ? 1 : 0.38
         size: pill.ctl.iconSize
 
-        // Dot: the preview is holding the camera
+        // On-air dot: some application (the preview included) is reading the camera
         Rectangle {
-            visible: pill.ctl.previewOn && pill.ctl.live
+            visible: pill.ctl.streaming
             width: Math.round(pill.ctl.iconSize / 4)
             height: width
             radius: width / 2
             anchors.top: parent.top
             anchors.right: parent.right
-            color: Theme.surfaceText
+            color: Theme.error
         }
     }
 
