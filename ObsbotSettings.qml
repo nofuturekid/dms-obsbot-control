@@ -100,6 +100,12 @@ PluginSettings {
     }
 
     ToggleSetting {
+        settingKey: "cardZone"
+        label: "Zone"
+        defaultValue: true
+    }
+
+    ToggleSetting {
         settingKey: "cardPicture"
         label: "Picture"
         defaultValue: true

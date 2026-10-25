@@ -13,8 +13,8 @@ from obsbot4linux, and shows only the cards the camera can do (its
 `capabilities`).
 
 The popout is 760 px wide with two columns of cards, each as high as its content.
-Left: Preview, Framing, Camera, Sleep. Right: Tracking, Picture, Image, Audio,
-Gestures, Factory reset. Collapsible cards start closed, one open per column, and
+Left: Preview, Framing, Camera, Sleep. Right: Tracking, Zone, Picture, Image,
+Audio, Gestures, Factory reset. Collapsible cards start closed, one open per column, and
 a closed card lists its settings under the title.
 
 **Arrange cards:** the edit (pencil) button in the header switches the popout into arrange
@@ -35,6 +35,9 @@ join their default column at the end.
 - tracking: AI mode, speed, tracked hand
 - framing: pan/tilt d-pad with live pose and fine steps, center, zoom; a manual
   move switches tracking to Static
+- zone: zone tracking on/off, follow new targets, the area (pan and tilt range,
+  "Full area") and "Return here"; the camera cannot report the area, so the card shows
+  the last one set
 - picture: HDR, exposure Global / Face / Custom (exposure time and gain)
 - camera: field of view, status LED, mirror, invert
 - sleep: auto-sleep and the picture while asleep
@@ -75,7 +78,7 @@ Right click is always sleep/wake. Further switches, all applied at once:
 | --- | --- | --- |
 | Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera` | off |
 | Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only | `statusTextInBar` | off |
-| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Picture, Image, Audio, Gestures, Factory reset | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on |
+| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Picture, Image, Audio, Gestures, Factory reset | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on |
 
 The card switches affect the popout only (not the bar icon actions or the Control
 Center tile). A card the connected camera does not support stays hidden whatever its

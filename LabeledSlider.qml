@@ -14,6 +14,12 @@ Column {
     // How the value is shown next to the label, e.g. tenths as "2.0×"
     property var formatValue: v => v + item.unit
     signal moved(int value)
+    // The drag, key press or wheel step is over; for values that should be sent once, not on every step
+    signal released(int value)
+
+    function sync() {
+        slider.value = item.value;
+    }
 
     spacing: 2
 
@@ -48,5 +54,6 @@ Column {
         maximum: item.maximum
         value: item.value
         onSliderValueChanged: newValue => item.moved(newValue)
+        onSliderDragFinished: finalValue => item.released(finalValue)
     }
 }

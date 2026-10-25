@@ -184,7 +184,7 @@ PluginComponent {
     }
     readonly property var defaultOrder: ({
             Left: ["preview", "framing", "camera", "sleep"],
-            Right: ["tracking", "picture", "image", "audio", "gestures", "reset"]
+            Right: ["tracking", "zone", "picture", "image", "audio", "gestures", "reset"]
         })
     property var cardOrder: defaultOrder
     // Replaced only when the order really differs, so other plugin settings changing
@@ -681,6 +681,19 @@ PluginComponent {
                         arranger: popout
                         visible: root.cardEnabled("Tracking")
                         ctl: root
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "zone"
+                    ZoneSection {
+                        width: parent.width
+                        cardId: "zone"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("zone")
+                        onToggleRequested: root.toggleOpen("zone")
                     }
                 }
 
