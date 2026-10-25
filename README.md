@@ -26,7 +26,23 @@ The popout follows layout 2a from the Claude Design study: two columns at
 - bar icon: videocam (accent) awake, videocam_off asleep, a dot while the
   preview holds the camera, hidden while unplugged
 
-Settings page: a tracking mode applied whenever the camera wakes up.
+Bar icon interactions:
+
+| Input | Action |
+| --- | --- |
+| Left click | Open the popout |
+| Right click | Wake / sleep the camera |
+| Middle click | Tracking on/off: Static, and back to the last other mode (Normal Tracking if none yet) |
+| Mouse wheel | Zoom in / out by 0.1 per notch, 1.0 to 4.0, while the camera is awake |
+| Hover | Tooltip with the state, e.g. "Tiny 2 Lite · Awake · Static" |
+
+Control Center tile: the icon wakes or sleeps the camera, the subtitle shows its
+state. A tile large enough (about 4 × 5 cells) and the tile's detail page show the
+Tracking card with mode, speed and tracked hand.
+
+Settings page: a tracking mode applied whenever the camera wakes up, and switches
+for "Mouse wheel zooms" and "Middle click toggles tracking" (both on by default).
+Right click is always sleep/wake.
 
 Camera access goes through [OBSBot4Linux](https://github.com/nofuturekid/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event
@@ -36,7 +52,9 @@ is plugged in.
 
 ## Install
 
-Needs `obsbot4linux` on PATH: packages for Arch, Debian/Ubuntu, Fedora/openSUSE
+Needs `obsbot4linux` on PATH; the plugin checks this when it is enabled and
+refuses to activate without it (the camera itself does not have to be plugged
+in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its
 [releases page](https://github.com/nofuturekid/obsbot4linux/releases). The live preview
 also needs `qt6-multimedia`; without it the preview frame says so and every

@@ -344,7 +344,7 @@ PluginComponent {
     ccWidgetSecondaryText: root.summary
     ccWidgetIsActive: root.awake
     onCcWidgetToggled: root.toggleAwake()
-    ccExpandedMinimumHeight: Theme.listItemHeight * 2
+    ccExpandedMinimumHeight: Theme.listItemHeight * 4
     ccExpandedContent: Component {
         CcTileContent {
             clip: true

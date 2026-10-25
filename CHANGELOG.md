@@ -3,6 +3,30 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.8.0] - 2026-10-25
+
+### Added
+
+- Startup check: the plugin only activates when `obsbot4linux` is on PATH,
+  otherwise DMS shows "obsbot4linux is required" with an install hint and the
+  releases link. The camera itself is not required.
+- Right click on the bar icon wakes or sleeps the camera, the same as the
+  Awake switch. Left click still opens the popout.
+- Hovering the bar icon shows a tooltip with the camera state, the line from
+  the popout header: "Tiny 2 Lite · Awake · Static".
+- Mouse wheel on the bar icon zooms by 0.1 per notch (1.0 to 4.0, while the
+  camera is awake); middle click switches tracking between Static and the last
+  other mode (Normal Tracking until one was used). Both can be switched off on
+  the settings page.
+- Control Center tile: the icon wakes or sleeps the camera, the subtitle shows
+  the state. A large enough tile (about 4 × 5) and the detail page show the
+  Tracking card (mode, speed, tracked hand). Control Center runs its own
+  instance of the widget, so it starts its own `obsbot4linux watch` while open.
+
+### Changed
+
+- The preview dot on the bar icon also shows in vertical bars.
+
 ## [0.7.1] - 2026-10-25
 
 ### Changed
