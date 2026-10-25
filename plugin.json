@@ -13,6 +13,7 @@
   ],
   "component": "./ObsbotWidget.qml",
   "settings": "./ObsbotSettings.qml",
+  "startupCheck": "./StartupCheck.qml",
   "dependencies": [
     "obsbot4linux",
     "qt6-multimedia"
