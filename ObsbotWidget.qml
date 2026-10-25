@@ -166,72 +166,106 @@ PluginComponent {
 
     signal stateRefreshed
 
-    // The open card of each column of Lite settings ("" = all closed); opening one closes
-    // the other in the same column, so the popout stays short
-    property string openLeft: ""
-    property string openRight: ""
-    function columnOf(id) {
-        return cardOrder.Left.includes(id) ? "Left" : "Right";
-    }
+    // The open card of each tab ("" = all closed); opening one closes the other in the same
+    // tab, so the popout stays short
+    property var openCards: ({})
     function isOpen(id) {
-        return (columnOf(id) === "Left" ? openLeft : openRight) === id;
+        return openCards[tabOf(id)] === id;
     }
     function toggleOpen(id) {
-        const next = isOpen(id) ? "" : id;
-        if (columnOf(id) === "Left")
-            openLeft = next;
-        else
-            openRight = next;
+        const next = Object.assign({}, openCards);
+        next[tabOf(id)] = isOpen(id) ? "" : id;
+        openCards = next;
     }
 
-    // Arrange mode of the popout (header button): cards fold up and can be dragged by their grip.
-    // The order is saved per column as card ids in cardOrderLeft / cardOrderRight. Ids missing
-    // there (new cards) join their default column at the end, unknown ids are dropped. Hidden and
-    // unsupported cards keep their slot in the order, they are only not shown.
+    // The right column of the popout is a tab bar; Preview and Framing stay in the left column.
+    // Arrange mode of the popout (header button): cards fold up and can be dragged by their grip,
+    // within their tab or onto another tab's button. The assignment is saved as card ids per tab
+    // in cardTabs. Ids missing there (new cards) join their default tab at the end, unknown ids
+    // are dropped. Hidden and unsupported cards keep their slot, they are only not shown.
     property bool arranging: false
-    onArrangingChanged: {
-        openLeft = "";
-        openRight = "";
-    }
-    readonly property var defaultOrder: ({
-            Left: ["preview", "framing", "camera", "sleep", "zone"],
-            Right: ["tracking", "picture", "image", "audio", "gestures", "reset"]
+    onArrangingChanged: openCards = ({})
+    readonly property var tabs: [
+        { id: "tracking", text: "Tracking", icon: "track_changes" },
+        { id: "picture", text: "Picture", icon: "tune" },
+        { id: "device", text: "Device", icon: "settings" }
+    ]
+    readonly property var defaultTabs: ({
+            tracking: ["tracking", "zone"],
+            picture: ["picture", "image"],
+            device: ["camera", "sleep", "audio", "gestures", "reset"]
         })
-    property var cardOrder: defaultOrder
-    // Replaced only when the order really differs, so other plugin settings changing
+    property var cardTabs: defaultTabs
+    function tabOf(id) {
+        return tabs.find(t => cardTabs[t.id].includes(id))?.id ?? "device";
+    }
+
+    // The tab selected in the popout ("" = the saved one); the last click is saved as lastTab
+    property string tab: ""
+    readonly property string lastTab: pluginData?.lastTab ?? "tracking"
+    function selectTab(id, save) {
+        tab = id;
+        if (save)
+            pluginService?.savePluginData(pluginId, "lastTab", id);
+    }
+
+    // Replaced only when the assignment really differs, so other plugin settings changing
     // do not rebuild the cards
-    function refreshOrder() {
-        const known = defaultOrder.Left.concat(defaultOrder.Right);
+    function refreshTabs() {
+        const known = tabs.reduce((all, t) => all.concat(defaultTabs[t.id]), []);
+        const defaultTab = id => tabs.find(t => defaultTabs[t.id].includes(id)).id;
+        const next = {};
         const seen = {};
-        const next = { Left: [], Right: [] };
-        for (const col of ["Left", "Right"]) {
-            const saved = pluginData?.["cardOrder" + col];
-            for (const id of Array.isArray(saved) ? saved : []) {
-                if (known.includes(id) && !seen[id]) {
-                    seen[id] = true;
-                    next[col].push(id);
-                }
+        const take = (t, id) => {
+            if (known.includes(id) && !seen[id]) {
+                seen[id] = true;
+                next[t].push(id);
             }
+        };
+        for (const t of tabs)
+            next[t.id] = [];
+        const saved = pluginData?.cardTabs;
+        if (saved && typeof saved === "object") {
+            for (const t of tabs) {
+                for (const id of Array.isArray(saved[t.id]) ? saved[t.id] : [])
+                    take(t.id, id);
+            }
+        } else {
+            // Before 0.17.0 the order was saved per column (cardOrderLeft / cardOrderRight): every
+            // card goes to its default tab, ordered by its place in its old column (left first on a tie)
+            const old = [];
+            for (const col of ["Left", "Right"]) {
+                const list = pluginData?.["cardOrder" + col];
+                (Array.isArray(list) ? list : []).filter(id => known.includes(id)).forEach((id, rank) => old.push({ id: id, rank: rank, col: col }));
+            }
+            old.sort((x, y) => x.rank - y.rank || (x.col === "Left" ? -1 : 1) - (y.col === "Left" ? -1 : 1));
+            for (const e of old)
+                take(defaultTab(e.id), e.id);
         }
-        for (const col of ["Left", "Right"])
-            next[col].push(...defaultOrder[col].filter(id => !seen[id]));
-        if (JSON.stringify(next) !== JSON.stringify(cardOrder))
-            cardOrder = next;
+        for (const t of tabs) {
+            for (const id of defaultTabs[t.id])
+                take(t.id, id);
+        }
+        if (JSON.stringify(next) !== JSON.stringify(cardTabs))
+            cardTabs = next;
     }
-    onPluginDataChanged: refreshOrder()
+    onPluginDataChanged: refreshTabs()
 
-    // anchorId: the visible card next to the drop position (after it or before it); "" = empty column
-    function moveCard(id, col, anchorId, after) {
-        const next = { Left: cardOrder.Left.filter(c => c !== id), Right: cardOrder.Right.filter(c => c !== id) };
-        next[col].splice(anchorId === "" ? next[col].length : next[col].indexOf(anchorId) + (after ? 1 : 0), 0, id);
-        if (JSON.stringify(next) === JSON.stringify(cardOrder))
+    // anchorId: the visible card next to the drop position (after it or before it); "" = end of the tab
+    function moveCard(id, toTab, anchorId, after) {
+        const next = {};
+        for (const t of tabs)
+            next[t.id] = cardTabs[t.id].filter(c => c !== id);
+        next[toTab].splice(anchorId === "" ? next[toTab].length : next[toTab].indexOf(anchorId) + (after ? 1 : 0), 0, id);
+        selectTab(toTab, false);
+        if (JSON.stringify(next) === JSON.stringify(cardTabs))
             return;
-        pluginService?.savePluginData(pluginId, "cardOrderLeft", next.Left);
-        pluginService?.savePluginData(pluginId, "cardOrderRight", next.Right);
+        pluginService?.savePluginData(pluginId, "cardTabs", next);
     }
 
-    // undefined drops the keys from the saved settings
+    // undefined drops the keys from the saved settings (the pre-0.17.0 column orders too)
     function resetLayout() {
+        pluginService?.savePluginData(pluginId, "cardTabs", undefined);
         pluginService?.savePluginData(pluginId, "cardOrderLeft", undefined);
         pluginService?.savePluginData(pluginId, "cardOrderRight", undefined);
     }
@@ -448,12 +482,14 @@ PluginComponent {
             watch.running = true;
     }
 
-    // Layout 1b: two columns (picture | behaviour); the preview area stays in place and is
-    // black while the preview is off. Cards switched off on the settings page (or not
-    // supported by the camera) close up; a column left without cards drops out and the
-    // popout narrows to the one column that is left. The popout reports the count.
+    // Layout: the left column (preview, framing) is always there, the right one has the tabs
+    // (Tracking | Picture | Device). The preview area stays in place and is black while the
+    // preview is off. Cards switched off on the settings page (or not supported by the camera)
+    // close up; a tab without cards drops out of the tab bar, and when a column is left without
+    // cards the popout narrows to the one column that is left. The popout reports the count.
     property int shownColumns: 2
-    popoutWidth: shownColumns >= 2 ? 760 : 380
+    // 920 px, but at most 90 % of a small screen (1366 px laptop, scaled displays)
+    popoutWidth: shownColumns >= 2 ? Math.min(920, Screen.width > 0 ? Math.round(Screen.width * 0.9) : 920) : 380
 
     // The bar draws the pill; plugins only provide the content (same as the built-in widgets).
     // Right click is sleep/wake; left click opens the popout.
@@ -507,21 +543,40 @@ PluginComponent {
 
             Component.onCompleted: root.refresh()
 
-            // In arrange mode both columns stay, an empty one is a drop target
+            // In arrange mode the tabs stay, an empty one is a drop target
             Binding {
                 target: root
                 property: "shownColumns"
-                value: root.arranging ? 2 : (leftColumn.hasCards ? 1 : 0) + (rightColumn.hasCards ? 1 : 0)
+                value: (leftColumn.hasCards ? 1 : 0) + (root.arranging || popout.shownTabs.length > 0 ? 1 : 0)
+            }
+
+            // The tabs with cards (all of them while arranging) and the selected one: the last
+            // click, else the saved tab, else the first tab that is left
+            readonly property var shownTabs: root.tabs.filter(t => root.arranging || tabColumn(t.id).hasCards)
+            readonly property string activeTab: {
+                const want = root.tab !== "" ? root.tab : root.lastTab;
+                return shownTabs.some(t => t.id === want) ? want : (shownTabs[0]?.id ?? "");
+            }
+
+            function tabColumn(id) {
+                return id === "tracking" ? trackingTab : id === "picture" ? pictureTab : deviceTab;
             }
 
             // Arrange mode: cards report the pointer while their grip is dragged; `drop` is the
-            // insert position (column, neighbour card, side), shown as a line, applied on release
+            // insert position (tab, neighbour card, side), shown as a line, applied on release.
+            // Over a tab button the card goes to the end of that tab (the button is highlighted).
             readonly property bool arranging: root.arranging
             property var drop: null
 
             function dragMove(id, scenePos) {
-                const p = cols.mapFromItem(null, scenePos.x, scenePos.y);
-                const column = p.x < rightColumn.x - columnRow.spacing / 2 ? leftColumn : rightColumn;
+                const b = tabBar.mapFromItem(null, scenePos.x, scenePos.y);
+                if (b.x >= 0 && b.x < tabBar.width && b.y >= 0 && b.y < tabBar.height) {
+                    const i = Math.min(shownTabs.length - 1, Math.floor(b.x / tabBar.width * shownTabs.length));
+                    drop = { tab: shownTabs[i].id, anchorId: "", after: true, bar: true, x: i * tabBar.width / shownTabs.length, width: tabBar.width / shownTabs.length };
+                    return;
+                }
+                const column = tabColumn(activeTab);
+                const p = column.mapFromItem(null, scenePos.x, scenePos.y);
                 const others = [];
                 for (const c of column.children) {
                     if (c.cardId && c.cardId !== id && c.visible)
@@ -530,13 +585,15 @@ PluginComponent {
                 const k = others.findIndex(c => p.y < c.y + c.height / 2);
                 const before = k >= 0 ? others[k] : null;
                 const last = others[others.length - 1];
+                const at = column.mapToItem(cols, 0, before ? before.y - column.spacing / 2 : last ? last.y + last.height + column.spacing / 2 : 0);
                 drop = {
-                    col: column === leftColumn ? "Left" : "Right",
+                    tab: activeTab,
                     anchorId: before ? before.cardId : last ? last.cardId : "",
                     after: !before,
-                    x: column.x,
+                    bar: false,
+                    x: at.x,
                     width: column.width,
-                    y: before ? before.y - column.spacing / 2 : last ? last.y + last.height + column.spacing / 2 : 0
+                    y: at.y
                 };
             }
 
@@ -544,7 +601,7 @@ PluginComponent {
                 const d = drop;
                 drop = null;
                 if (d)
-                    Qt.callLater(() => root.moveCard(id, d.col, d.anchorId, d.after));
+                    Qt.callLater(() => root.moveCard(id, d.tab, d.anchorId, d.after));
             }
 
             // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
@@ -575,8 +632,6 @@ PluginComponent {
                     width: body.width
                     spacing: Theme.spacingM
 
-                    // Two independent columns; every card is as high as its content and
-                    // follows the one above it directly
                     Item {
                         id: cols
                         width: parent.width
@@ -585,47 +640,122 @@ PluginComponent {
                         Row {
                             id: columnRow
                             width: parent.width
-                            spacing: (leftColumn.hasCards || root.arranging) && (rightColumn.hasCards || root.arranging) ? Theme.spacingM : 0
+                            spacing: leftColumn.hasCards && rightColumn.shown ? Theme.spacingM : 0
 
+                            // Always there: the picture to watch while changing settings
                             Column {
                                 id: leftColumn
                                 // Column skips hidden cards; without any it drops out
                                 readonly property bool hasCards: visibleChildren.length > 0
-                                readonly property bool shown: hasCards || root.arranging
-                                width: !shown ? 0 : rightColumn.shown ? (parent.width - parent.spacing) / 2 : parent.width
+                                width: !hasCards ? 0 : rightColumn.shown ? (parent.width - parent.spacing) * 0.55 : parent.width
                                 spacing: Theme.spacingM
 
-                                Repeater {
-                                    visible: false
-                                    model: root.cardOrder.Left
-                                    delegate: cardChooser
+                                PreviewPane {
+                                    width: parent.width
+                                    visible: root.cardEnabled("Preview")
+                                    ctl: root
+                                }
+
+                                FramingSection {
+                                    width: parent.width
+                                    visible: root.cardEnabled("Framing")
+                                    ctl: root
                                 }
                             }
 
                             Column {
                                 id: rightColumn
-                                readonly property bool hasCards: visibleChildren.length > 0
-                                readonly property bool shown: hasCards || root.arranging
-                                width: !shown ? 0 : leftColumn.shown ? parent.width - leftColumn.width - parent.spacing : parent.width
+                                readonly property bool shown: popout.shownTabs.length > 0
+                                width: !shown ? 0 : !leftColumn.hasCards ? parent.width : parent.width - leftColumn.width - parent.spacing
                                 spacing: Theme.spacingM
 
-                                Repeater {
-                                    visible: false
-                                    model: root.cardOrder.Right
-                                    delegate: cardChooser
+                                DTabBar {
+                                    id: tabBar
+                                    width: parent.width
+                                    model: popout.shownTabs
+                                    currentIndex: popout.shownTabs.findIndex(t => t.id === popout.activeTab)
+                                    onTabClicked: index => root.selectTab(popout.shownTabs[index].id, true)
+                                }
+
+                                // The tabs lie on top of each other and the area is as high as the
+                                // tallest one, so the popout does not jump when switching. A tab that is
+                                // not selected stays "visible" (the cards' visibility is what counts as
+                                // having cards) but is see-through and inert.
+                                Item {
+                                    id: tabArea
+                                    width: parent.width
+                                    height: Math.max(trackingTab.height, pictureTab.height, deviceTab.height)
+
+                                    Column {
+                                        id: trackingTab
+                                        readonly property bool hasCards: visibleChildren.length > 0
+                                        width: parent.width
+                                        spacing: Theme.spacingM
+                                        opacity: popout.activeTab === "tracking" ? 1 : 0
+                                        enabled: popout.activeTab === "tracking"
+
+                                        Repeater {
+                                            visible: false
+                                            model: root.cardTabs.tracking
+                                            delegate: cardChooser
+                                        }
+                                    }
+
+                                    Column {
+                                        id: pictureTab
+                                        readonly property bool hasCards: visibleChildren.length > 0
+                                        width: parent.width
+                                        spacing: Theme.spacingM
+                                        opacity: popout.activeTab === "picture" ? 1 : 0
+                                        enabled: popout.activeTab === "picture"
+
+                                        Repeater {
+                                            visible: false
+                                            model: root.cardTabs.picture
+                                            delegate: cardChooser
+                                        }
+                                    }
+
+                                    Column {
+                                        id: deviceTab
+                                        readonly property bool hasCards: visibleChildren.length > 0
+                                        width: parent.width
+                                        spacing: Theme.spacingM
+                                        opacity: popout.activeTab === "device" ? 1 : 0
+                                        enabled: popout.activeTab === "device"
+
+                                        Repeater {
+                                            visible: false
+                                            model: root.cardTabs.device
+                                            delegate: cardChooser
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         // Insert position of the card being dragged
                         Rectangle {
-                            visible: popout.drop !== null
+                            visible: popout.drop !== null && !popout.drop.bar
                             x: popout.drop?.x ?? 0
                             y: Math.max(0, (popout.drop?.y ?? 0) - height / 2)
                             width: popout.drop?.width ?? 0
                             height: Theme.spacingXS
                             radius: height / 2
                             color: Theme.primary
+                        }
+
+                        // Tab button the card would be dropped on
+                        Rectangle {
+                            visible: popout.drop?.bar ?? false
+                            x: tabBar.mapToItem(cols, popout.drop?.x ?? 0, 0).x
+                            y: tabBar.mapToItem(cols, 0, 0).y
+                            width: popout.drop?.width ?? 0
+                            height: tabBar.height
+                            radius: Theme.cornerRadius
+                            color: "transparent"
+                            border.width: 2
+                            border.color: Theme.primary
                         }
                     }
                 }
@@ -635,28 +765,6 @@ PluginComponent {
             DelegateChooser {
                 id: cardChooser
                 role: "modelData"
-
-                DelegateChoice {
-                    roleValue: "preview"
-                    PreviewPane {
-                        width: parent.width
-                        cardId: "preview"
-                        arranger: popout
-                        visible: root.cardEnabled("Preview")
-                        ctl: root
-                    }
-                }
-
-                DelegateChoice {
-                    roleValue: "framing"
-                    FramingSection {
-                        width: parent.width
-                        cardId: "framing"
-                        arranger: popout
-                        visible: root.cardEnabled("Framing")
-                        ctl: root
-                    }
-                }
 
                 DelegateChoice {
                     roleValue: "camera"

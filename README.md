@@ -12,19 +12,23 @@ currently the **OBSBOT Tiny 2 Lite**. It takes the camera's name and video devic
 from obsbot4linux, and shows only the cards the camera can do (its
 `capabilities`).
 
-The popout is 760 px wide with two columns of cards, each as high as its content.
-Left: Preview, Framing, Camera, Sleep, Zone. Right: Tracking, Picture, Image,
-Audio, Gestures, Factory reset. Collapsible cards start closed, one open per column, and
-a closed card lists its settings under the title.
+The popout is 920 px wide (at most 90 % of the screen width; the left column takes 55 %, so the preview is larger). The left column is always there: Preview and Framing, so you can
+watch the picture while changing settings. The right column is a tab bar with three tabs:
+Tracking (Tracking, Zone), Picture (Picture, Image) and Device (Camera, Sleep, Audio,
+Gestures, Factory reset). The tab area is as high as the tallest tab, so the popout does
+not jump when switching; the last selected tab is remembered (`lastTab`). Collapsible
+cards start closed, one open per tab, and a closed card lists its settings under the title.
 
 **Arrange cards:** the edit (pencil) button in the header switches the popout into arrange
 mode (it then reads as a check mark: click it to finish). Cards fold up and show a
-handle at the right of the title; drag a card by its handle within its column or to
-the other one, a line shows where it will land. Nothing can be dragged outside this
-mode. "Reset layout" restores the default order. The order is saved per column as
-card ids in `cardOrderLeft` and `cardOrderRight` (plugin settings), hidden and
-unsupported cards keep their place in it, and cards that are not in the saved list
-join their default column at the end.
+handle at the right of the title; drag a card by its handle within its tab, or drop it on
+another tab's button to move it to the end of that tab; a line shows where it will land.
+Preview and Framing stay in the left column. Nothing can be dragged outside this
+mode. "Reset layout" restores the default order. The order is saved per tab as
+card ids in `cardTabs` (plugin settings), hidden and unsupported cards keep their
+place in it, and cards that are not in the saved list join their default tab at the end.
+An order saved by 0.16.0 or older (`cardOrderLeft`, `cardOrderRight`) is migrated: each card
+goes to its default tab, ordered by its place in the old column.
 
 - header: OBSBOT Control, the camera model and its state, a spinner while a
   command is in flight, Awake switch
@@ -85,8 +89,8 @@ Right click is always sleep/wake. Further switches, all applied at once:
 
 The card switches affect the popout only (not the bar icon actions or the Control
 Center tile). A card the connected camera does not support stays hidden whatever its
-switch says. Hidden cards close up; if a whole column is empty the popout narrows
-from 760 px to the one column that is left.
+switch says. Hidden cards close up; a tab without cards drops out of the tab bar, and if a whole column
+(left, or all tabs) is empty the popout narrows from 920 px to the one column that is left.
 
 ## Desktop preview
 

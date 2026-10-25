@@ -3,6 +3,29 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.17.0] - 2026-10-25
+
+### Changed
+
+- The popout keeps Preview and Framing in the left column, always visible, so the picture
+  can be watched while changing settings. The right column is a tab bar: Tracking
+  (Tracking, Zone), Picture (Picture, Image) and Device (Camera, Sleep, Audio, Gestures,
+  Factory reset). The tab area is as high as the tallest tab, so the popout does not jump
+  when switching. The last selected tab is remembered (`lastTab`). A tab without cards
+  (switched off or unsupported) drops out of the tab bar.
+- Arrange mode reorders cards within a tab and moves them to another tab by dropping them
+  on its tab button. Preview and Framing are fixed. The order is saved per tab as
+  `cardTabs`; "Reset layout" restores the default.
+- The popout is 920 px wide instead of 760, the left column takes 55 % of it: a larger
+  preview.
+- Collapsible cards: one open per tab instead of per column.
+
+### Migrated
+
+- A saved `cardOrderLeft` / `cardOrderRight` order becomes the tab order: every card goes
+  to its default tab, ordered by its place in its old column. Cards missing there join
+  their default tab at the end. The old keys are ignored and removed by "Reset layout".
+
 ## [0.16.0] - 2026-10-25
 
 ### Added
