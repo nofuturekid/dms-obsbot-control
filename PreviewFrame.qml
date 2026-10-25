@@ -17,6 +17,8 @@ ClippingRectangle {
 
     property var ctl
     property bool interactive: true
+    // passed to PreviewVideo: drop the Camera object when stopped (desktop widget)
+    property bool releaseOnStop: false
     // Desktop widget: drop the hint's text body when the resized frame is too small for it
     property bool dropBodyWhenTight: false
 
@@ -71,6 +73,13 @@ ClippingRectangle {
         target: videoLoader.item
         property: "node"
         value: frame.ctl.videoNode
+        when: videoLoader.status === Loader.Ready
+    }
+
+    Binding {
+        target: videoLoader.item
+        property: "releaseOnStop"
+        value: frame.releaseOnStop
         when: videoLoader.status === Loader.Ready
     }
 
