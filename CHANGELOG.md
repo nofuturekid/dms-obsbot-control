@@ -3,6 +3,19 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.13.0] - 2026-10-25
+
+### Added
+
+- Arrange cards: a grip button in the popout header switches to arrange mode
+  (the button then shows a check mark). The cards fold up and get a drag handle
+  in their title row; drag one within its column or into the other column, a
+  line shows the insert position. Outside arrange mode nothing is draggable. Both
+  columns stay visible while arranging, so an empty one can take a card. "Reset
+  layout" restores the default order. The order is saved per column in the plugin
+  settings (`cardOrderLeft`, `cardOrderRight`, lists of card ids); hidden and
+  unsupported cards keep their slot, new cards join their default column.
+
 ## [0.12.0] - 2026-10-25
 
 ### Added

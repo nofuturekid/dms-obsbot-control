@@ -17,6 +17,15 @@ Left: Preview, Framing, Camera, Sleep. Right: Tracking, Picture, Image, Audio,
 Gestures, Factory reset. Collapsible cards start closed, one open per column, and
 a closed card lists its settings under the title.
 
+**Arrange cards:** the grip button in the header switches the popout into arrange
+mode (it then reads as a check mark: click it to finish). Cards fold up and show a
+handle at the right of the title; drag a card by its handle within its column or to
+the other one, a line shows where it will land. Nothing can be dragged outside this
+mode. "Reset layout" restores the default order. The order is saved per column as
+card ids in `cardOrderLeft` and `cardOrderRight` (plugin settings), hidden and
+unsupported cards keep their place in it, and cards that are not in the saved list
+join their default column at the end.
+
 - header: OBSBOT Control, the camera model and its state, a spinner while a
   command is in flight, Awake switch
 - preview frame (16:9, Qt Multimedia at 720p): live picture while the preview

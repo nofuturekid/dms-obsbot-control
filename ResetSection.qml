@@ -14,7 +14,7 @@ SectionCard {
     collapsible: true
     expanded: false
     visible: ctl.cardEnabled("Reset") && ctl.has("factory_reset")
-    enabled: ctl.available
+    enabled: ctl.available || arranging
     opacity: ctl.available ? 1 : 0.38
     onExpandedChanged: confirming = false
 

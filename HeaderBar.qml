@@ -29,7 +29,7 @@ Item {
     Column {
         anchors.left: badge.right
         anchors.leftMargin: Theme.spacingM
-        anchors.right: awakeRow.left
+        anchors.right: editButton.left
         anchors.verticalCenter: parent.verticalCenter
         spacing: 2
 
@@ -68,6 +68,18 @@ Item {
                 font.pixelSize: Theme.fontSizeSmall
             }
         }
+    }
+
+    // Arrange mode of the popout cards (drag handles, Reset layout)
+    DIconButton {
+        id: editButton
+        anchors.right: awakeRow.visible ? awakeRow.left : parent.right
+        anchors.rightMargin: awakeRow.visible ? Theme.spacingM : 0
+        anchors.verticalCenter: parent.verticalCenter
+        iconName: bar.ctl.arranging ? "check" : "drag_indicator"
+        variant: bar.ctl.arranging ? "tonal" : "standard"
+        tooltipText: bar.ctl.arranging ? "Done" : "Arrange cards"
+        onClicked: bar.ctl.arranging = !bar.ctl.arranging
     }
 
     Row {

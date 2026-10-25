@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Window
+import QtQml.Models
 import Quickshell
 import Quickshell.Io
 import qs.Common
@@ -146,8 +147,10 @@ PluginComponent {
 
     // DMS only hides the popout, its content stays alive; switch the preview off on close
     onInteractionActiveChanged: {
-        if (!interactionActive)
+        if (!interactionActive) {
             previewOn = false;
+            arranging = false;
+        }
     }
 
     signal stateRefreshed
@@ -156,6 +159,71 @@ PluginComponent {
     // the other in the same column, so the popout stays short
     property string openLeft: ""
     property string openRight: ""
+    function columnOf(id) {
+        return cardOrder.Left.includes(id) ? "Left" : "Right";
+    }
+    function isOpen(id) {
+        return (columnOf(id) === "Left" ? openLeft : openRight) === id;
+    }
+    function toggleOpen(id) {
+        const next = isOpen(id) ? "" : id;
+        if (columnOf(id) === "Left")
+            openLeft = next;
+        else
+            openRight = next;
+    }
+
+    // Arrange mode of the popout (header button): cards fold up and can be dragged by their grip.
+    // The order is saved per column as card ids in cardOrderLeft / cardOrderRight. Ids missing
+    // there (new cards) join their default column at the end, unknown ids are dropped. Hidden and
+    // unsupported cards keep their slot in the order, they are only not shown.
+    property bool arranging: false
+    onArrangingChanged: {
+        openLeft = "";
+        openRight = "";
+    }
+    readonly property var defaultOrder: ({
+            Left: ["preview", "framing", "camera", "sleep"],
+            Right: ["tracking", "picture", "image", "audio", "gestures", "reset"]
+        })
+    property var cardOrder: defaultOrder
+    // Replaced only when the order really differs, so other plugin settings changing
+    // do not rebuild the cards
+    function refreshOrder() {
+        const known = defaultOrder.Left.concat(defaultOrder.Right);
+        const seen = {};
+        const next = { Left: [], Right: [] };
+        for (const col of ["Left", "Right"]) {
+            const saved = pluginData?.["cardOrder" + col];
+            for (const id of Array.isArray(saved) ? saved : []) {
+                if (known.includes(id) && !seen[id]) {
+                    seen[id] = true;
+                    next[col].push(id);
+                }
+            }
+        }
+        for (const col of ["Left", "Right"])
+            next[col].push(...defaultOrder[col].filter(id => !seen[id]));
+        if (JSON.stringify(next) !== JSON.stringify(cardOrder))
+            cardOrder = next;
+    }
+    onPluginDataChanged: refreshOrder()
+
+    // anchorId: the visible card next to the drop position (after it or before it); "" = empty column
+    function moveCard(id, col, anchorId, after) {
+        const next = { Left: cardOrder.Left.filter(c => c !== id), Right: cardOrder.Right.filter(c => c !== id) };
+        next[col].splice(anchorId === "" ? next[col].length : next[col].indexOf(anchorId) + (after ? 1 : 0), 0, id);
+        if (JSON.stringify(next) === JSON.stringify(cardOrder))
+            return;
+        pluginService?.savePluginData(pluginId, "cardOrderLeft", next.Left);
+        pluginService?.savePluginData(pluginId, "cardOrderRight", next.Right);
+    }
+
+    // undefined drops the keys from the saved settings
+    function resetLayout() {
+        pluginService?.savePluginData(pluginId, "cardOrderLeft", undefined);
+        pluginService?.savePluginData(pluginId, "cardOrderRight", undefined);
+    }
 
     // changes: { group: { key: value } }; in "image" the value goes into <control>.value
     function patch(changes) {
@@ -420,10 +488,44 @@ PluginComponent {
 
             Component.onCompleted: root.refresh()
 
+            // In arrange mode both columns stay, an empty one is a drop target
             Binding {
                 target: root
                 property: "shownColumns"
-                value: (leftColumn.hasCards ? 1 : 0) + (rightColumn.hasCards ? 1 : 0)
+                value: root.arranging ? 2 : (leftColumn.hasCards ? 1 : 0) + (rightColumn.hasCards ? 1 : 0)
+            }
+
+            // Arrange mode: cards report the pointer while their grip is dragged; `drop` is the
+            // insert position (column, neighbour card, side), shown as a line, applied on release
+            readonly property bool arranging: root.arranging
+            property var drop: null
+
+            function dragMove(id, scenePos) {
+                const p = cols.mapFromItem(null, scenePos.x, scenePos.y);
+                const column = p.x < rightColumn.x - columnRow.spacing / 2 ? leftColumn : rightColumn;
+                const others = [];
+                for (const c of column.children) {
+                    if (c.cardId && c.cardId !== id && c.visible)
+                        others.push(c);
+                }
+                const k = others.findIndex(c => p.y < c.y + c.height / 2);
+                const before = k >= 0 ? others[k] : null;
+                const last = others[others.length - 1];
+                drop = {
+                    col: column === leftColumn ? "Left" : "Right",
+                    anchorId: before ? before.cardId : last ? last.cardId : "",
+                    after: !before,
+                    x: column.x,
+                    width: column.width,
+                    y: before ? before.y - column.spacing / 2 : last ? last.y + last.height + column.spacing / 2 : 0
+                };
+            }
+
+            function dragEnd(id) {
+                const d = drop;
+                drop = null;
+                if (d)
+                    Qt.callLater(() => root.moveCard(id, d.col, d.anchorId, d.after));
             }
 
             // DMS sizes the popout to its content; past 85 % of the screen the body scrolls
@@ -454,99 +556,209 @@ PluginComponent {
                     width: body.width
                     spacing: Theme.spacingM
 
-                    // Two independent columns; every card is as high as its content and
-                    // follows the one above it directly
                     Row {
                         width: parent.width
-                        spacing: leftColumn.hasCards && rightColumn.hasCards ? Theme.spacingM : 0
+                        spacing: Theme.spacingM
+                        visible: root.arranging
 
-                        Column {
-                            id: leftColumn
-                            // Column skips hidden cards; without any it drops out
-                            readonly property bool hasCards: visibleChildren.length > 0
-                            width: !hasCards ? 0 : rightColumn.hasCards ? (parent.width - parent.spacing) / 2 : parent.width
-                            spacing: Theme.spacingM
+                        StyledText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - resetButton.width - parent.spacing
+                            text: "Drag a card by its handle to move it."
+                            color: Theme.surfaceVariantText
+                            font.pixelSize: Theme.fontSizeSmall
+                            wrapMode: Text.WordWrap
+                        }
 
-                            PreviewPane {
-                                width: parent.width
-                                visible: root.cardEnabled("Preview")
-                                ctl: root
+                        DButton {
+                            id: resetButton
+                            text: "Reset layout"
+                            iconName: "restart_alt"
+                            onClicked: root.resetLayout()
+                        }
+                    }
+
+                    // Two independent columns; every card is as high as its content and
+                    // follows the one above it directly
+                    Item {
+                        id: cols
+                        width: parent.width
+                        height: columnRow.height
+
+                        Row {
+                            id: columnRow
+                            width: parent.width
+                            spacing: (leftColumn.hasCards || root.arranging) && (rightColumn.hasCards || root.arranging) ? Theme.spacingM : 0
+
+                            Column {
+                                id: leftColumn
+                                // Column skips hidden cards; without any it drops out
+                                readonly property bool hasCards: visibleChildren.length > 0
+                                readonly property bool shown: hasCards || root.arranging
+                                width: !shown ? 0 : rightColumn.shown ? (parent.width - parent.spacing) / 2 : parent.width
+                                spacing: Theme.spacingM
+
+                                Repeater {
+                                    visible: false
+                                    model: root.cardOrder.Left
+                                    delegate: cardChooser
+                                }
                             }
 
-                            FramingSection {
-                                width: parent.width
-                                visible: root.cardEnabled("Framing")
-                                ctl: root
-                            }
+                            Column {
+                                id: rightColumn
+                                readonly property bool hasCards: visibleChildren.length > 0
+                                readonly property bool shown: hasCards || root.arranging
+                                width: !shown ? 0 : leftColumn.shown ? parent.width - leftColumn.width - parent.spacing : parent.width
+                                spacing: Theme.spacingM
 
-                            CameraSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openLeft === "camera"
-                                onToggleRequested: root.openLeft = expanded ? "" : "camera"
-                            }
-
-                            SleepSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openLeft === "sleep"
-                                onToggleRequested: root.openLeft = expanded ? "" : "sleep"
+                                Repeater {
+                                    visible: false
+                                    model: root.cardOrder.Right
+                                    delegate: cardChooser
+                                }
                             }
                         }
 
-                        Column {
-                            id: rightColumn
-                            readonly property bool hasCards: visibleChildren.length > 0
-                            width: !hasCards ? 0 : leftColumn.hasCards ? parent.width - leftColumn.width - parent.spacing : parent.width
-                            spacing: Theme.spacingM
-
-                            TrackingSection {
-                                width: parent.width
-                                visible: root.cardEnabled("Tracking")
-                                ctl: root
-                            }
-
-                            PictureSection {
-                                width: parent.width
-                                visible: root.cardEnabled("Picture")
-                                ctl: root
-                            }
-
-                            ImageSection {
-                                width: parent.width
-                                visible: root.cardEnabled("Image")
-                                ctl: root
-                                controlled: true
-                                expanded: root.openRight === "image"
-                                onToggleRequested: root.openRight = expanded ? "" : "image"
-                            }
-
-                            AudioSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openRight === "audio"
-                                onToggleRequested: root.openRight = expanded ? "" : "audio"
-                            }
-
-                            GestureSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openRight === "gestures"
-                                onToggleRequested: root.openRight = expanded ? "" : "gestures"
-                            }
-
-                            ResetSection {
-                                width: parent.width
-                                ctl: root
-                                controlled: true
-                                expanded: root.openRight === "reset"
-                                onToggleRequested: root.openRight = expanded ? "" : "reset"
-                            }
+                        // Insert position of the card being dragged
+                        Rectangle {
+                            visible: popout.drop !== null
+                            x: popout.drop?.x ?? 0
+                            y: Math.max(0, (popout.drop?.y ?? 0) - height / 2)
+                            width: popout.drop?.width ?? 0
+                            height: Theme.spacingXS
+                            radius: height / 2
+                            color: Theme.primary
                         }
+                    }
+                }
+            }
+
+            // One delegate per card id; the repeaters above create them in the saved order
+            DelegateChooser {
+                id: cardChooser
+                role: "modelData"
+
+                DelegateChoice {
+                    roleValue: "preview"
+                    PreviewPane {
+                        width: parent.width
+                        cardId: "preview"
+                        arranger: popout
+                        visible: root.cardEnabled("Preview")
+                        ctl: root
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "framing"
+                    FramingSection {
+                        width: parent.width
+                        cardId: "framing"
+                        arranger: popout
+                        visible: root.cardEnabled("Framing")
+                        ctl: root
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "camera"
+                    CameraSection {
+                        width: parent.width
+                        cardId: "camera"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("camera")
+                        onToggleRequested: root.toggleOpen("camera")
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "sleep"
+                    SleepSection {
+                        width: parent.width
+                        cardId: "sleep"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("sleep")
+                        onToggleRequested: root.toggleOpen("sleep")
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "tracking"
+                    TrackingSection {
+                        width: parent.width
+                        cardId: "tracking"
+                        arranger: popout
+                        visible: root.cardEnabled("Tracking")
+                        ctl: root
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "picture"
+                    PictureSection {
+                        width: parent.width
+                        cardId: "picture"
+                        arranger: popout
+                        visible: root.cardEnabled("Picture")
+                        ctl: root
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "image"
+                    ImageSection {
+                        width: parent.width
+                        cardId: "image"
+                        arranger: popout
+                        visible: root.cardEnabled("Image")
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("image")
+                        onToggleRequested: root.toggleOpen("image")
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "audio"
+                    AudioSection {
+                        width: parent.width
+                        cardId: "audio"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("audio")
+                        onToggleRequested: root.toggleOpen("audio")
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "gestures"
+                    GestureSection {
+                        width: parent.width
+                        cardId: "gestures"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("gestures")
+                        onToggleRequested: root.toggleOpen("gestures")
+                    }
+                }
+
+                DelegateChoice {
+                    roleValue: "reset"
+                    ResetSection {
+                        width: parent.width
+                        cardId: "reset"
+                        arranger: popout
+                        ctl: root
+                        controlled: true
+                        expanded: root.isOpen("reset")
+                        onToggleRequested: root.toggleOpen("reset")
                     }
                 }
             }

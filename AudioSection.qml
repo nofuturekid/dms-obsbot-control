@@ -17,7 +17,7 @@ SectionCard {
     visible: ctl.cardEnabled("Audio") && ctl.has("audio")
     summary: [ctl.status.noise_reduction ? "Noise reduction " + ctl.status.noise_reduction : "", ctl.status.pickup_distance ? "pickup " + ctl.status.pickup_distance : "", ctl.status.auto_gain !== undefined ? "auto gain " + (ctl.status.auto_gain ? "on" : "off") : "", ctl.status.mic_in_sleep !== undefined ? "mic asleep " + (ctl.status.mic_in_sleep ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
     // the camera takes these while asleep too and keeps them when it wakes
-    enabled: ctl.available
+    enabled: ctl.available || arranging
     opacity: ctl.available ? 1 : 0.38
 
     ChipRow {
