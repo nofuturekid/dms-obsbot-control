@@ -70,7 +70,7 @@ camera is plugged in.
 
 ## Install
 
-Needs `obsbot4linux` 0.3.0 or newer on PATH; the plugin checks this when it is
+Needs `obsbot4linux` 0.3.1 or newer on PATH; the plugin checks this when it is
 enabled and refuses to activate without it (the camera itself does not have to
 be plugged in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its

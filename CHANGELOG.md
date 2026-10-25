@@ -3,6 +3,15 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.1] - 2026-10-25
+
+### Fixed
+
+- The on-air dot shows for every app again, also Chrome (through PipeWire) and
+  the widget's own preview: it needs obsbot4linux 0.3.1, which detects
+  streaming in the kernel driver instead of by process. Apps it cannot name
+  show as "On air" without a name.
+
 ## [0.11.0] - 2026-10-25
 
 ### Added

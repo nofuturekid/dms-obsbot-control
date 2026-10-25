@@ -117,8 +117,11 @@ PluginComponent {
         return awake ? "Awake · " + aiMode : "Asleep · lens stowed";
     }
     // Any application reading the camera, the widget's own preview included (obsbot4linux 0.3.0)
-    readonly property bool streaming: cam.streaming === true
-    readonly property var streamingApps: cam.streaming_apps ?? []
+    // On air: any app streams (obsbot4linux's kernel probe) or our own preview runs. The preview is
+    // counted here too: Qt reads the frames without mmap, so obsbot4linux can't name it.
+    readonly property bool streaming: cam.streaming === true || previewOn
+    // Names obsbot4linux could see (may be empty, e.g. Chrome's sandbox), plus our preview
+    readonly property var streamingApps: (cam.streaming_apps ?? []).filter(a => a !== "qs").concat(previewOn ? ["qs"] : [])
     readonly property var appNames: ({
             "qs": "preview",
             "chrome": "Chrome",
