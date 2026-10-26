@@ -3,6 +3,9 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+Changes that come from someone else (a merged pull request, or an issue or report that led to
+the change) are credited at the end of their line as `(#N, thanks @handle)`.
+
 ## [0.17.1] - 2026-10-26
 
 ### Fixed
