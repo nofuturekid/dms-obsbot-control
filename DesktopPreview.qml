@@ -55,7 +55,9 @@ DesktopPluginComponent {
         if (device === "")
             return;
         const wanted = device;
-        Proc.runCommand("obsbotControl.desktopVideoNode", ["readlink", "-f", wanted], (stdout, exitCode) => {
+        // No id: Proc debounces per id and keeps only the last callback, so a shared id would
+        // leave every instance but the last (one per screen) without its video node
+        Proc.runCommand(null, ["readlink", "-f", wanted], (stdout, exitCode) => {
             if (exitCode === 0 && root.device === wanted)
                 root.videoNode = stdout.trim();
         });

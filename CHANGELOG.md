@@ -3,6 +3,15 @@
 All notable changes to this widget. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.17.1] - 2026-10-26
+
+### Fixed
+
+- With the bar widget (or the desktop preview) on several screens, the preview stayed at
+  "Waiting for the camera" on all screens but one. All instances resolved the camera's
+  video device with the same `Proc` id, and `Proc` keeps only the last callback per id.
+  Each instance now gets its own.
+
 ## [0.17.0] - 2026-10-25
 
 ### Changed
