@@ -3,13 +3,14 @@ import qs.Common
 import qs.DCommon.Widgets
 
 // Zone tracking: stay within an area, return to a chosen position. obsbot4linux 0.5.0 reads
-// the area, follow and the return position from the camera (status key `zone`).
+// the area, follow and the return position from the camera (status key `zone`); 0.7.1 reports
+// the ranges the area may take (`limits`).
 SectionCard {
     id: section
 
     property var ctl
 
-    readonly property var fullArea: [-100, 100, -30, 30]
+    readonly property var fullArea: ctl.limits ? [ctl.limits.pan[0], ctl.limits.pan[1], ctl.limits.tilt[0], ctl.limits.tilt[1]].map(v => Math.round(v)) : [0, 0, 0, 0]
     readonly property var zone: ctl.cam.zone ?? null
     // [pan from, pan to, tilt from, tilt to] as the camera reports it
     readonly property var cameraArea: zone ? [zone.pan_min, zone.pan_max, zone.tilt_min, zone.tilt_max].map(v => Math.round(v)) : fullArea
@@ -99,8 +100,8 @@ SectionCard {
         id: panMinSlider
         width: parent.width
         label: "Pan from"
-        minimum: -100
-        maximum: 100
+        minimum: section.fullArea[0]
+        maximum: section.fullArea[1]
         value: section.panMin
         formatValue: section.deg
         onMoved: value => section.setArea("panMin", value)
@@ -111,8 +112,8 @@ SectionCard {
         id: panMaxSlider
         width: parent.width
         label: "Pan to"
-        minimum: -100
-        maximum: 100
+        minimum: section.fullArea[0]
+        maximum: section.fullArea[1]
         value: section.panMax
         formatValue: section.deg
         onMoved: value => section.setArea("panMax", value)
@@ -123,8 +124,8 @@ SectionCard {
         id: tiltMinSlider
         width: parent.width
         label: "Tilt from"
-        minimum: -30
-        maximum: 30
+        minimum: section.fullArea[2]
+        maximum: section.fullArea[3]
         value: section.tiltMin
         formatValue: section.deg
         onMoved: value => section.setArea("tiltMin", value)
@@ -135,8 +136,8 @@ SectionCard {
         id: tiltMaxSlider
         width: parent.width
         label: "Tilt to"
-        minimum: -30
-        maximum: 30
+        minimum: section.fullArea[2]
+        maximum: section.fullArea[3]
         value: section.tiltMax
         formatValue: section.deg
         onMoved: value => section.setArea("tiltMax", value)

@@ -93,8 +93,8 @@ SectionCard {
         width: parent.width
         label: "Zoom"
         // hundredths, so the field of view levels (1.15×, 1.47×) show exactly
-        minimum: 100
-        maximum: 400
+        minimum: Math.round(section.ctl.zoomRange[0] * 100)
+        maximum: Math.round(section.ctl.zoomRange[1] * 100)
         value: Math.round(section.ctl.zoomFactor * 100)
         formatValue: v => (v / 100).toFixed(2) + "×"
         onMoved: value => section.ctl.setZoom(value / 100)

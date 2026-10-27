@@ -78,6 +78,10 @@ PluginComponent {
     // live pose (follows AI tracking), else the last pose obsbot4linux set
     readonly property real pan: cam.pose?.pan ?? cam.state?.gimbal?.pan ?? 0
     readonly property real tilt: cam.pose?.tilt ?? cam.state?.gimbal?.tilt ?? 0
+    // What gimbal, poses and zone area accept ({pan, tilt, zoom}: [min, max]), from obsbot4linux
+    readonly property var limits: cam.limits ?? null
+    // [min, max] zoom factor; [1, 1] until obsbot4linux reported its limits
+    readonly property var zoomRange: limits?.zoom ?? [1, 1]
     readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
 
     // Camera model and V4L2 by-id path, both null in the state while no supported camera is there
@@ -407,18 +411,19 @@ PluginComponent {
         root.send(["zoom", factor.toFixed(2)], "", { zoom: { factor: factor } }, true);
     }
 
-    // Mouse wheel: 0.1 per notch within 1.0-4.0, the range `obsbot4linux zoom` accepts
+    // Mouse wheel: 0.1 per notch within the range `obsbot4linux zoom` accepts
     function stepZoom(notches) {
-        const next = Math.max(1, Math.min(4, Math.round((root.zoomFactor + notches * 0.1) * 100) / 100));
+        const next = Math.max(root.zoomRange[0], Math.min(root.zoomRange[1], Math.round((root.zoomFactor + notches * 0.1) * 100) / 100));
         if (next !== root.zoomFactor)
             root.setZoom(next);
     }
 
-    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself;
-    // obsbot4linux 0.7.0 accepts pan -150..150 and tilt -89..90 (-90 reads back as +90)
+    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself.
+    // The ranges come from obsbot4linux's `limits`; without them it rejects what is out of range.
     function moveGimbal(newPan, newTilt) {
-        const p = Math.max(-150, Math.min(150, newPan));
-        const t = Math.max(-89, Math.min(90, newTilt));
+        const clamp = (v, range) => range ? Math.max(range[0], Math.min(range[1], v)) : v;
+        const p = clamp(newPan, root.limits?.pan);
+        const t = clamp(newTilt, root.limits?.tilt);
         root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, pose: { pan: p, tilt: t }, status: { ai_mode: "static" } });
     }
 
