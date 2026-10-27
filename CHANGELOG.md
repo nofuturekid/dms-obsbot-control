@@ -6,6 +6,15 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [0.18.1] - 2026-10-27
+
+### Changed
+
+- The pan/tilt buttons, the zone sliders and the zoom take their ranges from obsbot4linux's
+  `limits` instead of their own (#53). Requires obsbot4linux 0.7.1.
+- Tilt stops at -70 instead of -89: below -75 the Tiny 2 Lite goes to sleep, and woken there it
+  sleeps again. The zone area reaches pan ±150 and tilt -70..90 instead of ±100 / ±30 (#53).
+
 ## [0.18.0] - 2026-10-27
 
 ### Added
