@@ -13,7 +13,7 @@ SectionCard {
         { label: "Target lock", arg: "target-lock", key: "target_lock" },
         { label: "Zoom", arg: "zoom", key: "zoom_gesture" },
         { label: "Dynamic zoom", arg: "dynamic-zoom", key: "dynamic_zoom" },
-        { label: "Direction change", arg: "direction", key: "direction_change" }
+        { label: "Direction change", arg: "direction-change", key: "direction_change" }
     ]
     readonly property int onCount: gestures.filter(g => ctl.tracking[g.key] === true).length
 

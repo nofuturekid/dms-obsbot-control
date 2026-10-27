@@ -414,10 +414,11 @@ PluginComponent {
             root.setZoom(next);
     }
 
-    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself
+    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself;
+    // obsbot4linux 0.7.0 accepts pan -150..150 and tilt -89..90 (-90 reads back as +90)
     function moveGimbal(newPan, newTilt) {
-        const p = Math.max(-130, Math.min(130, newPan));
-        const t = Math.max(-90, Math.min(90, newTilt));
+        const p = Math.max(-150, Math.min(150, newPan));
+        const t = Math.max(-89, Math.min(90, newTilt));
         root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, pose: { pan: p, tilt: t }, status: { ai_mode: "static" } });
     }
 

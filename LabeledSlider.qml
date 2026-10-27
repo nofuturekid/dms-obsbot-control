@@ -13,6 +13,8 @@ Column {
     property int value: 0
     // How the value is shown next to the label, e.g. tenths as "2.0×"
     property var formatValue: v => v + item.unit
+    // A mouse drag is going on; ends on release and when the drag is cancelled
+    readonly property bool dragging: slider.isDragging
     signal moved(int value)
     // The drag, key press or wheel step is over; for values that should be sent once, not on every step
     signal released(int value)

@@ -53,8 +53,9 @@ SectionCard {
         onSelected: index => section.ctl.send(["hand", section.sides[index].toLowerCase()], "Tracking the " + section.sides[index].toLowerCase() + " hand", { tracking: { hand_side: section.sides[index].toLowerCase() } })
     }
 
-    // Works with and without zone tracking (measured): when the target is lost the camera keeps
-    // tracking and waits for a new one instead of switching to Static. Not in the compact tile.
+    // Measured with zone tracking on (Tiny 2 Lite): when the target left the area the camera kept
+    // tracking and took a new one, except with the zone return position at pan 0 / tilt 0 /
+    // zoom 1.0, where it went Static in 6 of 7 runs. Not in the compact tile.
     ToggleRow {
         width: parent.width
         visible: section.ctl.has("zone_follow") && !section.compact

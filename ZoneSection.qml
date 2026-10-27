@@ -17,15 +17,24 @@ SectionCard {
     property int panMax: cameraArea[1]
     property int tiltMin: cameraArea[2]
     property int tiltMax: cameraArea[3]
-    // While a slider is dragged the camera's (older) area must not pull it back
-    property bool editing: false
+    // While a slider is held, and for a moment after the area went out (like dragHold in the
+    // widget), the camera's (older) area must not pull the sliders back. A drag that is cancelled
+    // instead of released ends it too; the sliders then show the camera's area again.
+    readonly property bool editing: areaHold.running || panMinSlider.dragging || panMaxSlider.dragging || tiltMinSlider.dragging || tiltMaxSlider.dragging
     readonly property var returnPos: zone?.return ?? null
     readonly property bool zoneOn: ctl.tracking.zone_tracking === true
     readonly property bool fullAreaSet: panMin === fullArea[0] && panMax === fullArea[1] && tiltMin === fullArea[2] && tiltMax === fullArea[3]
 
     onCameraAreaChanged: {
-        if (editing)
-            return;
+        if (!editing)
+            syncArea();
+    }
+    onEditingChanged: {
+        if (!editing)
+            syncArea();
+    }
+
+    function syncArea() {
         panMin = cameraArea[0];
         panMax = cameraArea[1];
         tiltMin = cameraArea[2];
@@ -45,7 +54,6 @@ SectionCard {
 
     // Keeps from < to; the slider that was dragged past the other one stops at it
     function setArea(which, value) {
-        editing = true;
         if (which === "panMin")
             panMin = Math.min(value, panMax - 1);
         else if (which === "panMax")
@@ -62,7 +70,12 @@ SectionCard {
 
     function sendArea() {
         ctl.send(["zone", "area", "--pan", panMin, panMax, "--tilt", tiltMin, tiltMax], "Setting zone area", { zone: { pan_min: panMin, pan_max: panMax, tilt_min: tiltMin, tilt_max: tiltMax } });
-        editing = false;
+        areaHold.restart();
+    }
+
+    Timer {
+        id: areaHold
+        interval: 500
     }
 
     title: "Zone"
@@ -173,7 +186,7 @@ SectionCard {
         width: parent.width
         wrapMode: Text.WordWrap
         text: section.ctl.cam.state?.zone_follow === true
-            ? "When the target leaves the area, the camera keeps tracking and takes the next person who enters it."
+            ? "When the target leaves the area, the camera keeps tracking and takes the next person who enters it. With the return position at pan 0° · tilt 0° · zoom 1.0× it went Static instead in tests."
             : "When the target leaves the area, tracking stops (Static) and the camera returns to its return position."
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
