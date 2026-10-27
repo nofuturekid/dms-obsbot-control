@@ -6,6 +6,42 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [0.18.0] - 2026-10-27
+
+### Added
+
+- Errors from obsbot4linux show as a DMS toast, also with the popout closed and from the
+  desktop widget. Before, they were only logged and the control snapped back (#42).
+- Each instance logs once what it is and on which screen ("started as bar widget on screen
+  DP-1", "desktop widget …", "Control Center tile or detail page"), and when its video node
+  is found or lost (#37).
+- `watch` logs its stderr and exit code (#45).
+
+### Changed
+
+- The pan/tilt buttons reach obsbot4linux 0.7.0's gimbal range, pan ±150 and tilt -89..90,
+  instead of ±130 / ±90. A step down to -90 was rejected by 0.7.0 (and flipped the camera to
+  +90 with 0.6.0) (#41).
+- A failed request rolls back only its own change; other changes in flight stay (#42).
+- `watch` restarts back off from 2 s to 30 s while it keeps failing (#45).
+- The preview's camera exists only while the preview runs, so "Stop" frees the device for a
+  call while the popout stays open. Without a matching device no preview is built instead
+  of falling back to another camera, e.g. a laptop's (#44).
+- The "Follow new targets" texts state what was measured: with the zone return position at
+  0/0/1.0 the camera went Static after the target left the zone (#47).
+
+### Fixed
+
+- The "Direction change" gesture switch sent `direction`, which obsbot4linux does not accept,
+  so it could never be changed (#40).
+- With one bar per screen, every instance sent the wake tracking mode; now one does (#43).
+- The throw-away instance DMS creates for the Control Center icon no longer starts a `watch`
+  (#45).
+- Zone sliders no longer jump back while dragged or right after sending, and a cancelled drag
+  can no longer leave them ignoring the camera (#46).
+- "On air: preview" no longer stays on when the camera goes to sleep with the popout open
+  (#44).
+
 ## [0.17.1] - 2026-10-26
 
 ### Fixed
