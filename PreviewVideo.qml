@@ -9,13 +9,10 @@ Item {
     // camera on; off keeps the device free for other apps
     property bool running: false
 
-    // true: the Camera object exists only while running (desktop widget, which stays loaded:
-    // Qt keeps the device busy after `active: false` until the Camera is destroyed). false: it is
-    // created up front for an instant start; the popout destroys it anyway when it closes.
-    property bool releaseOnStop: false
-
     // /dev/videoN of the camera to show (the by-id path from obsbot4linux, resolved)
     property string node: ""
+    // Qt's device with that id; null shows nothing rather than another camera (e.g. a laptop's)
+    readonly property var device: mediaDevices.videoInputs.find(d => String(d.id) === root.node) ?? null
 
     // When another preview (popout / desktop widget) hands the camera over, it may still hold the
     // device for a moment and the first start fails: retry a few times instead of staying black.
@@ -36,11 +33,13 @@ Item {
     Loader {
         id: session
         anchors.fill: parent
-        active: root.releaseOnStop ? root.running && !root.restarting : true
+        // The Camera object exists only while running: Qt keeps the device busy after
+        // `active: false` until the Camera is destroyed
+        active: root.running && !root.restarting && root.device !== null
         sourceComponent: Item {
             CaptureSession {
                 camera: Camera {
-                    cameraDevice: mediaDevices.videoInputs.find(d => String(d.id) === root.node) ?? mediaDevices.defaultVideoInput
+                    cameraDevice: root.device
                     // 720p is plenty for a ~350 px preview and keeps MJPEG decoding cheap
                     cameraFormat: cameraDevice.videoFormats.find(f => f.resolution.width === 1280 && f.resolution.height === 720) ?? cameraDevice.videoFormats[0]
                     active: root.running && !root.restarting

@@ -17,8 +17,6 @@ ClippingRectangle {
 
     property var ctl
     property bool interactive: true
-    // passed to PreviewVideo: drop the Camera object when stopped (desktop widget)
-    property bool releaseOnStop: false
     // Desktop widget: drop the hint's text body when the resized frame is too small for it
     property bool dropBodyWhenTight: false
 
@@ -60,7 +58,7 @@ ClippingRectangle {
     radius: Theme.cornerRadius
 
     // Loaded in the background as soon as the popout opens (Qt Multimedia takes ~2 s to
-    // load), so starting the preview only switches the camera on
+    // load), so starting the preview only creates the camera
     Loader {
         id: videoLoader
         anchors.fill: parent
@@ -73,13 +71,6 @@ ClippingRectangle {
         target: videoLoader.item
         property: "node"
         value: frame.ctl.videoNode
-        when: videoLoader.status === Loader.Ready
-    }
-
-    Binding {
-        target: videoLoader.item
-        property: "releaseOnStop"
-        value: frame.releaseOnStop
         when: videoLoader.status === Loader.Ready
     }
 

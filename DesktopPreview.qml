@@ -83,8 +83,6 @@ DesktopPluginComponent {
     }
 
     PreviewFrame {
-        // stays loaded on the desktop: free the device whenever the preview stops
-        releaseOnStop: true
         id: frame
         anchors.fill: parent
         ctl: root

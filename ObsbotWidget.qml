@@ -119,6 +119,12 @@ PluginComponent {
         onDisplaced: root.previewOn = false
     }
     readonly property bool live: available && awake
+    // Off whenever the picture cannot be live any more (asleep, unplugged, watch lost), here or
+    // from another surface, like the desktop widget
+    onLiveChanged: {
+        if (!live)
+            previewOn = false;
+    }
 
     readonly property string statusText: {
         if (!available)
