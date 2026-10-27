@@ -7,6 +7,7 @@ import qs.Common
 import qs.DCommon.Widgets
 import qs.Modules.ControlCenter.Widgets
 import qs.Modules.Plugins
+import qs.Services
 
 PluginComponent {
     id: root
@@ -67,6 +68,9 @@ PluginComponent {
     // The state object of the last event, with optimistic patches on top
     property var cam: ({})
     property var truth: ({})
+    // The optimistic changes sent since the last event, by request id; a failed request takes
+    // back only its own
+    property var patches: ({})
     readonly property var status: cam.status ?? ({})
     readonly property var tracking: cam.tracking ?? ({})
     readonly property var image: cam.image ?? ({})
@@ -299,11 +303,13 @@ PluginComponent {
     function send(args, label, changes, slider) {
         if (!watch.running)
             return;
-        if (changes)
+        const id = ++root.requestId;
+        if (changes) {
             root.patch(changes);
+            root.patches = Object.assign({}, root.patches, { [id]: changes });
+        }
         if (slider)
             dragHold.restart();
-        const id = ++root.requestId;
         if (label) {
             root.pendingId = id;
             root.pendingLabel = label;
@@ -326,16 +332,34 @@ PluginComponent {
                 root.pendingLabel = "";
             if (msg.ok === false) {
                 console.warn("obsbotControl: obsbot4linux:", msg.error);
-                // the optimistic change did not happen
+                root.showError(msg.error);
+                // the optimistic change of this request did not happen; the state is rebuilt
+                // from the last event and the changes still in flight, the dragged sliders stay
+                const rest = Object.assign({}, root.patches);
+                delete rest[msg.id];
+                root.patches = rest;
+                const held = dragHold.running ? { image: root.cam.image, zoom: root.cam.zoom } : null;
                 root.cam = root.truth;
+                for (const id in rest)
+                    root.patch(rest[id]);
+                if (held)
+                    root.cam = Object.assign({}, root.cam, held);
                 root.stateRefreshed();
             }
         }
     }
 
+    // A toast for a few seconds: the first line of obsbot4linux's error, the rest (e.g. the usage)
+    // as its details
+    function showError(error) {
+        const lines = String(error ?? "").trim().split("\n");
+        ToastService.showError("OBSBOT Control: " + lines[0], lines.slice(1).join("\n").trim());
+    }
+
     function onState(next) {
         const was = root.truth.status?.asleep;
         root.truth = next;
+        root.patches = ({});
         if (dragHold.running) {
             const s = Object.assign({}, next);
             s.image = root.cam.image;

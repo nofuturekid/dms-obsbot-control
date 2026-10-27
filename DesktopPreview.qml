@@ -86,8 +86,12 @@ DesktopPluginComponent {
         }
         if (msg.event === "state")
             root.cam = msg.state;
-        else if (msg.id !== undefined && msg.ok === false)
+        else if (msg.id !== undefined && msg.ok === false) {
             console.warn("obsbotControl: obsbot4linux:", msg.error);
+            // same toast as the bar widget
+            const lines = String(msg.error ?? "").trim().split("\n");
+            ToastService.showError("OBSBOT Control: " + lines[0], lines.slice(1).join("\n").trim());
+        }
     }
 
     // One preview at a time: starting one in the popout switches this one off and vice versa
