@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Window
 import QtQml.Models
 import Quickshell
-import Quickshell.Io
 import qs.Common
 import qs.DCommon.Widgets
 import qs.Modules.ControlCenter.Widgets
@@ -85,22 +84,10 @@ PluginComponent {
     readonly property string model: cam.model ?? ""
     readonly property string device: cam.device ?? ""
     // /dev/videoN behind `device`, what Qt Multimedia calls the camera's id
-    property string videoNode: ""
+    readonly property string videoNode: watch.videoNode
     readonly property bool previewReady: device !== "" && videoNode !== ""
-    onDeviceChanged: {
-        videoNode = "";
-        if (device === "")
-            return;
-        const wanted = device;
-        // No id: Proc debounces per id and keeps only the last callback, so a shared id would
-        // leave every instance but the last (one per screen) without its video node
-        Proc.runCommand(null, ["readlink", "-f", wanted], (stdout, exitCode) => {
-            if (exitCode === 0 && root.device === wanted)
-                root.videoNode = stdout.trim();
-        });
-    }
 
-    property bool toolMissing: false
+    readonly property bool toolMissing: watch.toolMissing
     readonly property bool available: cam.available === true
     readonly property bool awake: available && status.asleep === false
     readonly property string aiMode: trackingModes.find(m => m.key === status.ai_mode)?.label ?? ""
@@ -314,46 +301,28 @@ PluginComponent {
             root.pendingId = id;
             root.pendingLabel = label;
         }
-        watch.write(JSON.stringify({ id: id, args: args.map(String) }) + "\n");
+        watch.write(id, args);
         root.stateRefreshed();
     }
 
-    function handleLine(line) {
-        let msg;
-        try {
-            msg = JSON.parse(line);
-        } catch (e) {
-            return;
+    // The answer to a request; the watcher has already logged and shown an error
+    function handleReply(msg) {
+        if (msg.id === root.pendingId)
+            root.pendingLabel = "";
+        if (msg.ok === false) {
+            // the optimistic change of this request did not happen; the state is rebuilt
+            // from the last event and the changes still in flight, the dragged sliders stay
+            const rest = Object.assign({}, root.patches);
+            delete rest[msg.id];
+            root.patches = rest;
+            const held = dragHold.running ? { image: root.cam.image, zoom: root.cam.zoom } : null;
+            root.cam = root.truth;
+            for (const id in rest)
+                root.patch(rest[id]);
+            if (held)
+                root.cam = Object.assign({}, root.cam, held);
+            root.stateRefreshed();
         }
-        if (msg.event === "state") {
-            root.onState(msg.state);
-        } else if (msg.id !== undefined) {
-            if (msg.id === root.pendingId)
-                root.pendingLabel = "";
-            if (msg.ok === false) {
-                console.warn("obsbotControl: obsbot4linux:", msg.error);
-                root.showError(msg.error);
-                // the optimistic change of this request did not happen; the state is rebuilt
-                // from the last event and the changes still in flight, the dragged sliders stay
-                const rest = Object.assign({}, root.patches);
-                delete rest[msg.id];
-                root.patches = rest;
-                const held = dragHold.running ? { image: root.cam.image, zoom: root.cam.zoom } : null;
-                root.cam = root.truth;
-                for (const id in rest)
-                    root.patch(rest[id]);
-                if (held)
-                    root.cam = Object.assign({}, root.cam, held);
-                root.stateRefreshed();
-            }
-        }
-    }
-
-    // A toast for a few seconds: the first line of obsbot4linux's error, the rest (e.g. the usage)
-    // as its details
-    function showError(error) {
-        const lines = String(error ?? "").trim().split("\n");
-        ToastService.showError("OBSBOT Control: " + lines[0], lines.slice(1).join("\n").trim());
     }
 
     function onState(next) {
@@ -368,8 +337,9 @@ PluginComponent {
         } else {
             root.cam = next;
         }
-        // Only on a real asleep -> awake change seen in events, not on the first state after a DMS start
-        if (was === true && next.status?.asleep === false && root.wakeTrackingMode !== "")
+        // Only on a real asleep -> awake change seen in events, not on the first state after a DMS
+        // start, and only by the one instance that holds `wakeSender`
+        if (was === true && next.status?.asleep === false && root.wakeTrackingMode !== "" && root.wakeSender === root.wakeToken)
             root.send(["tracking", root.wakeTrackingMode]);
         const mode = next.status?.ai_mode;
         if (mode && mode !== "static" && mode !== root.lastTrackingMode)
@@ -477,37 +447,49 @@ PluginComponent {
     }
     onHideWithoutCameraChanged: applyVisibility()
     onAvailableChanged: applyVisibility()
-    Component.onCompleted: applyVisibility()
+    Component.onCompleted: {
+        applyVisibility();
+        claimWake();
+    }
 
-    Process {
+    // DMS also creates a throw-away instance only to read ccWidgetIcon; it gets no pluginService
+    // and runs no watch. The bar sets hostContext and the screen; Control Center sets neither.
+    readonly property bool realInstance: pluginService !== null
+    readonly property string instanceName: !hostContext ? "Control Center tile or detail page" : (hostContext.kind === "bar" ? "bar widget" : hostContext.kind + " widget") + (parentScreen?.name ? " on screen " + parentScreen.name : "")
+
+    CameraWatch {
         id: watch
-        // Exit code 127 tells "tool not installed" apart from a daemon or camera problem
-        command: ["sh", "-c", "command -v obsbot4linux >/dev/null || exit 127; exec obsbot4linux watch"]
-        running: true
-        stdinEnabled: true
-        stdout: SplitParser {
-            onRead: line => root.handleLine(line)
-        }
-        onExited: exitCode => {
-            root.toolMissing = exitCode === 127;
+        active: root.realInstance
+        instanceName: root.instanceName
+        device: root.device
+        onStateEvent: next => root.onState(next)
+        onReply: msg => root.handleReply(msg)
+        onStopped: {
             root.cam = ({});
             root.truth = ({});
             root.pendingLabel = "";
             root.stateRefreshed();
-            restartTimer.restart();
         }
-    }
-
-    Timer {
-        id: restartTimer
-        interval: root.toolMissing ? 10000 : 2000
-        onTriggered: watch.running = true
     }
 
     // Retry button: start the watcher again now
     function refresh() {
-        if (!watch.running)
-            watch.running = true;
+        watch.refresh();
+    }
+
+    // One instance sends the wake tracking mode: the plugin global variable `wakeSender` holds
+    // the token of a real instance; when it goes away the next one takes over (as PreviewClaim)
+    readonly property string wakeToken: Math.random().toString(36).slice(2)
+    readonly property string wakeSender: PluginService.globalVars[pluginId]?.wakeSender ?? ""
+    function claimWake() {
+        if (realInstance && wakeSender === "")
+            PluginService.setGlobalVar(pluginId, "wakeSender", wakeToken);
+    }
+    onWakeSenderChanged: claimWake()
+    onRealInstanceChanged: claimWake()
+    Component.onDestruction: {
+        if (wakeSender === wakeToken)
+            PluginService.setGlobalVar(pluginId, "wakeSender", "");
     }
 
     // Layout: the left column (preview, framing) is always there, the right one has the tabs

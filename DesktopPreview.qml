@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Modules.Plugins
@@ -23,10 +22,13 @@ DesktopPluginComponent {
     // copy of them: that one is inert
     readonly property bool editing: DesktopWidgetRegistry.editing
 
+    // Set by DMS (DesktopWidgetContent) when the component declares it; for the log
+    property var screen: null
+
     // Camera state from obsbot4linux watch, same fields as the popout reads
     property var cam: ({})
-    property bool toolMissing: false
-    property string videoNode: ""
+    readonly property bool toolMissing: watch.toolMissing
+    readonly property string videoNode: watch.videoNode
     property bool previewOn: false
     property int requestId: 0
 
@@ -50,48 +52,17 @@ DesktopPluginComponent {
             previewOn = false;
     }
 
-    onDeviceChanged: {
-        videoNode = "";
-        if (device === "")
-            return;
-        const wanted = device;
-        // No id: Proc debounces per id and keeps only the last callback, so a shared id would
-        // leave every instance but the last (one per screen) without its video node
-        Proc.runCommand(null, ["readlink", "-f", wanted], (stdout, exitCode) => {
-            if (exitCode === 0 && root.device === wanted)
-                root.videoNode = stdout.trim();
-        });
-    }
-
     function setAwake(on) {
         if (!watch.running)
             return;
         if (!on)
             previewOn = false;
-        watch.write(JSON.stringify({ id: ++root.requestId, args: [on ? "wake" : "sleep"] }) + "\n");
+        watch.write(++root.requestId, [on ? "wake" : "sleep"]);
     }
 
     // Retry button: start the watcher again now
     function refresh() {
-        if (!watch.running)
-            watch.running = true;
-    }
-
-    function handleLine(line) {
-        let msg;
-        try {
-            msg = JSON.parse(line);
-        } catch (e) {
-            return;
-        }
-        if (msg.event === "state")
-            root.cam = msg.state;
-        else if (msg.id !== undefined && msg.ok === false) {
-            console.warn("obsbotControl: obsbot4linux:", msg.error);
-            // same toast as the bar widget
-            const lines = String(msg.error ?? "").trim().split("\n");
-            ToastService.showError("OBSBOT Control: " + lines[0], lines.slice(1).join("\n").trim());
-        }
+        watch.refresh();
     }
 
     // One preview at a time: starting one in the popout switches this one off and vice versa
@@ -101,26 +72,14 @@ DesktopPluginComponent {
         onDisplaced: root.previewOn = false
     }
 
-    Process {
+    // Errors are logged and shown as a toast by the watcher
+    CameraWatch {
         id: watch
-        // Exit code 127 tells "tool not installed" apart from a daemon or camera problem
-        command: ["sh", "-c", "command -v obsbot4linux >/dev/null || exit 127; exec obsbot4linux watch"]
-        running: true
-        stdinEnabled: true
-        stdout: SplitParser {
-            onRead: line => root.handleLine(line)
-        }
-        onExited: exitCode => {
-            root.toolMissing = exitCode === 127;
-            root.cam = ({});
-            restartTimer.restart();
-        }
-    }
-
-    Timer {
-        id: restartTimer
-        interval: root.toolMissing ? 10000 : 2000
-        onTriggered: watch.running = true
+        active: true
+        instanceName: "desktop widget" + (root.screen?.name ? " on screen " + root.screen.name : "")
+        device: root.device
+        onStateEvent: next => root.cam = next
+        onStopped: root.cam = ({})
     }
 
     PreviewFrame {
