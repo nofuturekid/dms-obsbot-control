@@ -6,6 +6,16 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [Unreleased]
+
+### Changed
+
+- **Breaking:** the repository is renamed from `dms-obsbot-control` to `obsbot4linux-dux`, next to
+  obsbot4linux, and the plugin id from `obsbotControl` to `obsbot4linuxDux` (install folder,
+  settings key, bar widget). The widget keeps its name, OBSBOT Control. To move an installed copy:
+  remove the `obsbotControl` plugin, install `obsbot4linuxDux`, add the widget to the bar again
+  (its settings start fresh). GitHub redirects the old repository URL.
+
 ## [0.18.1] - 2026-10-27
 
 ### Changed

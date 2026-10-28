@@ -1,5 +1,5 @@
 {
-  "id": "obsbotControl",
+  "id": "obsbot4linuxDux",
   "name": "OBSBOT Control",
   "description": "Bar widget and desktop preview for OBSBOT webcams, built on obsbot4linux (currently the Tiny 2 Lite): sleep/wake, AI tracking mode and speed, HDR, exposure, zoom, pan/tilt, image adjustments and a live preview",
   "version": "0.18.1",

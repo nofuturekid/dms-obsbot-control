@@ -4,7 +4,7 @@ import qs.DCommon.Widgets
 import qs.Modules.Plugins
 
 PluginSettings {
-    pluginId: "obsbotControl"
+    pluginId: "obsbot4linuxDux"
 
     SelectionSetting {
         settingKey: "wakeTrackingMode"

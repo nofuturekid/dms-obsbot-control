@@ -37,7 +37,7 @@ Item {
     }
 
     function log(text) {
-        console.info("obsbotControl (" + instanceName + "): " + text);
+        console.info("obsbot4linuxDux (" + instanceName + "): " + text);
     }
 
     // One line when a real instance starts; later, so the host has set the screen
@@ -46,7 +46,7 @@ Item {
         if (!active || started)
             return;
         started = true;
-        Qt.callLater(() => console.info("obsbotControl: started as " + watcher.instanceName));
+        Qt.callLater(() => console.info("obsbot4linuxDux: started as " + watcher.instanceName));
     }
     onActiveChanged: logStart()
     Component.onCompleted: logStart()
@@ -82,7 +82,7 @@ Item {
             stateEvent(msg.state);
         } else if (msg.id !== undefined) {
             if (msg.ok === false) {
-                console.warn("obsbotControl: obsbot4linux:", msg.error);
+                console.warn("obsbot4linuxDux: obsbot4linux:", msg.error);
                 // A toast for a few seconds: the first line of the error, the rest (e.g. the
                 // usage) as its details
                 const lines = String(msg.error ?? "").trim().split("\n");
@@ -102,12 +102,12 @@ Item {
             onRead: line => watcher.handleLine(line)
         }
         stderr: SplitParser {
-            onRead: line => console.warn("obsbotControl (" + watcher.instanceName + "): watch:", line)
+            onRead: line => console.warn("obsbot4linuxDux (" + watcher.instanceName + "): watch:", line)
         }
         onExited: exitCode => {
             watcher.toolMissing = exitCode === 127;
             restartTimer.interval = watcher.toolMissing ? 10000 : watcher.backoff;
-            console.warn("obsbotControl (" + watcher.instanceName + "): watch exited with code " + exitCode + ", restart in " + restartTimer.interval / 1000 + " s");
+            console.warn("obsbot4linuxDux (" + watcher.instanceName + "): watch exited with code " + exitCode + ", restart in " + restartTimer.interval / 1000 + " s");
             watcher.backoff = Math.min(watcher.backoff * 2, 30000);
             watcher.stopped();
             restartTimer.restart();

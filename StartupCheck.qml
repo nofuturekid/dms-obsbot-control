@@ -25,7 +25,7 @@ QtObject {
     }
 
     function check(done) {
-        Proc.runCommand("obsbotControl.depCheck", ["sh", "-c", "command -v obsbot4linux >/dev/null && obsbot4linux --version"], (stdout, exitCode) => {
+        Proc.runCommand("obsbot4linuxDux.depCheck", ["sh", "-c", "command -v obsbot4linux >/dev/null && obsbot4linux --version"], (stdout, exitCode) => {
             const minimum = minVersion.join(".");
             if (exitCode !== 0) {
                 done({

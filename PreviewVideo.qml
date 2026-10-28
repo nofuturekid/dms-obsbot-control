@@ -46,7 +46,7 @@ Item {
                     // Not from inside the signal (binding loop): retry a moment later, the other
                     // preview may still be releasing the device
                     onErrorOccurred: (error, errorString) => {
-                        console.warn("obsbotControl: preview camera:", errorString, "- retry", root.retries + 1);
+                        console.warn("obsbot4linuxDux: preview camera:", errorString, "- retry", root.retries + 1);
                         if (!root.running || root.retries >= 10)
                             return;
                         root.retries++;

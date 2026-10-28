@@ -1,6 +1,7 @@
-# dms-obsbot-control
+# obsbot4linux-dux
 
-DankMaterialShell bar widget and desktop preview for OBSBOT webcams.
+Dux (DankMaterialShell) bar widget and desktop preview for OBSBOT webcams, the desktop
+frontend of [obsbot4linux](https://github.com/nofuturekid/obsbot4linux). Formerly `dms-obsbot-control`.
 
 ![Popout with the preview off](assets/screenshot.png)
 
@@ -134,18 +135,18 @@ other control still works.
 From the DMS plugin browser, or manually:
 
 ```sh
-git clone https://github.com/nofuturekid/dms-obsbot-control.git \
-    ~/.config/DankMaterialShell/plugins/obsbotControl
-dms ipc call plugins enable obsbotControl
+git clone https://github.com/nofuturekid/obsbot4linux-dux.git \
+    ~/.config/DankMaterialShell/plugins/obsbot4linuxDux
+dms ipc call plugins enable obsbot4linuxDux
 ```
 
-Then add the `obsbotControl` widget to a bar in DMS settings.
+Then add the `obsbot4linuxDux` widget to a bar in DMS settings.
 After changing QML, run `dms restart` (`plugins reload` keeps cached components).
 
 ## Update
 
 ```sh
-dms plugins update obsbotControl
+dms plugins update obsbot4linuxDux
 dms restart
 ```
 
