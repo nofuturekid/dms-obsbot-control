@@ -6,6 +6,13 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [0.19.1] - 2026-10-28
+
+### Fixed
+
+- plugin.json now states the obsbot4linux version the widget actually requires, 0.7.1 (the startup
+  check already refused older ones; plugin.json still said 0.5.0).
+
 ## [0.19.0] - 2026-10-28
 
 ### Changed
