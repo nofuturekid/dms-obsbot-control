@@ -35,7 +35,7 @@ SectionCard {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
                 tooltipText: "Pan left " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan + section.ctl.gimbalStep, section.ctl.tilt)
+                onClicked: section.ctl.moveGimbal(section.ctl.pan + section.ctl.panLeftSign * section.ctl.gimbalStep, section.ctl.tilt)
             }
             DIconButton {
                 variant: "outlined"
@@ -47,7 +47,7 @@ SectionCard {
                 variant: "tonal"
                 iconName: "keyboard_arrow_right"
                 tooltipText: "Pan right " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.gimbalStep, section.ctl.tilt)
+                onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.panLeftSign * section.ctl.gimbalStep, section.ctl.tilt)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {

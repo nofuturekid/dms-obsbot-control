@@ -42,7 +42,8 @@ goes to its default tab, ordered by its place in the old column.
   Static, except with the zone return position at pan 0 / tilt 0 / zoom 1.0, where
   it went Static in 6 of 7 runs); "searching" in the status
   while it has lost its target
-- framing: pan/tilt d-pad with live pose and fine steps, center, zoom; a manual
+- framing: pan/tilt d-pad with live pose and fine steps, center, zoom; the left and
+  right arrows follow the picture (flipped while mirror is on); a manual
   move switches tracking to Static
 - zone: zone tracking on/off, the area (pan and tilt range,
   "Full area"), the return position with "Return here" (current pose) and "Go to return

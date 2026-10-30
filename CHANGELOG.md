@@ -6,6 +6,14 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [Unreleased]
+
+### Fixed
+
+- The Framing card's left and right arrows follow the picture: with mirror on they pan the other
+  way, so left shows more of the picture's left edge. "Invert view and gimbal" needs no extra
+  flip (measured: the reported pan equals the commanded one with invert on and off). (#59)
+
 ## [0.19.1] - 2026-10-28
 
 ### Fixed

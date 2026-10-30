@@ -104,6 +104,11 @@ PluginComponent {
         return (cam.capabilities ?? []).indexOf(name) >= 0;
     }
 
+    // Arrow direction follows the picture: with mirror on, the picture's left is the camera's right.
+    // "Invert view and gimbal" needs no extra flip: it leaves the commanded and the reported pan
+    // alone (measured on a Tiny 2 Lite, gimbal --pan 20 reads pose.pan 20 with invert on and off)
+    readonly property int panLeftSign: status.mirror === true ? -1 : 1
+
     // Fine steps: 1° per arrow click instead of 5°
     property bool fineGimbal: false
     readonly property int gimbalStep: fineGimbal ? 1 : 5
