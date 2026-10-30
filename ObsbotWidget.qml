@@ -172,6 +172,20 @@ PluginComponent {
         }
     }
 
+    // obsbot4linux 0.8.0 polls the live pose only for connections that ask for it. Only the
+    // popout's Framing card shows the pose (the desktop widget never asks). The subscription
+    // belongs to the watch connection: poseSent forgets it when the watch process ends, and the
+    // first state of the new connection asks again.
+    readonly property bool poseWanted: interactionActive && cardEnabled("Framing") && has("live_pose_on_demand")
+    property bool poseSent: false
+    onPoseWantedChanged: syncPose()
+    function syncPose() {
+        if (poseWanted === poseSent || !watch.running)
+            return;
+        send(["live-pose", poseWanted ? "on" : "off"]);
+        poseSent = poseWanted;
+    }
+
     signal stateRefreshed
 
     // The open card of each tab ("" = all closed); opening one closes the other in the same
@@ -359,6 +373,7 @@ PluginComponent {
         const mode = next.status?.ai_mode;
         if (mode && mode !== "static" && mode !== root.lastTrackingMode)
             root.pluginService?.savePluginData(root.pluginId, "lastTrackingMode", mode);
+        root.syncPose();
         root.stateRefreshed();
     }
 
@@ -481,6 +496,7 @@ PluginComponent {
         onStateEvent: next => root.onState(next)
         onReply: msg => root.handleReply(msg)
         onStopped: {
+            root.poseSent = false;
             root.cam = ({});
             root.truth = ({});
             root.pendingLabel = "";

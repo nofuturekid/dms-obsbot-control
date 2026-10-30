@@ -8,6 +8,13 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Changed
+
+- With obsbot4linux 0.8.0 or newer the widget asks for the live gimbal pose only while the popout
+  with the Framing card is open (`live-pose on` / `off` over the watch connection, again after the
+  watch restarts), so the daemon stops polling the camera otherwise. The desktop widget never asks.
+  Older obsbot4linux versions are unaffected. (#58)
+
 ### Fixed
 
 - The Framing card's left and right arrows follow the picture: with mirror on they pan the other
