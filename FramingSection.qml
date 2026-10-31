@@ -28,14 +28,20 @@ SectionCard {
                 variant: "tonal"
                 iconName: "keyboard_arrow_up"
                 tooltipText: "Tilt up " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt + section.ctl.gimbalStep)
+                onClicked: {
+                    const b = section.ctl.stepBase();
+                    section.ctl.moveGimbal(b.pan, b.tilt + section.ctl.gimbalStep);
+                }
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
                 tooltipText: "Pan left " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan + section.ctl.panLeftSign * section.ctl.gimbalStep, section.ctl.tilt)
+                onClicked: {
+                    const b = section.ctl.stepBase();
+                    section.ctl.moveGimbal(b.pan + section.ctl.panLeftSign * section.ctl.gimbalStep, b.tilt);
+                }
             }
             DIconButton {
                 variant: "outlined"
@@ -47,14 +53,20 @@ SectionCard {
                 variant: "tonal"
                 iconName: "keyboard_arrow_right"
                 tooltipText: "Pan right " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan - section.ctl.panLeftSign * section.ctl.gimbalStep, section.ctl.tilt)
+                onClicked: {
+                    const b = section.ctl.stepBase();
+                    section.ctl.moveGimbal(b.pan - section.ctl.panLeftSign * section.ctl.gimbalStep, b.tilt);
+                }
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_down"
                 tooltipText: "Tilt down " + section.ctl.gimbalStep + "°"
-                onClicked: section.ctl.moveGimbal(section.ctl.pan, section.ctl.tilt - section.ctl.gimbalStep)
+                onClicked: {
+                    const b = section.ctl.stepBase();
+                    section.ctl.moveGimbal(b.pan, b.tilt - section.ctl.gimbalStep);
+                }
             }
             Item { width: upButton.width; height: upButton.height }
         }

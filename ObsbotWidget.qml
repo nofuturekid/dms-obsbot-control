@@ -440,10 +440,22 @@ PluginComponent {
 
     // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself.
     // The ranges come from obsbot4linux's `limits`; without them it rejects what is out of range.
+    // Target of the last own gimbal move. Arrow steps build on it while the gimbal is still on its
+    // way: the live pose then reads a point in between, and quick presses would fall short.
+    property var moveTarget: null
+    property double moveTargetAt: 0
+    function stepBase() {
+        if (moveTarget && Date.now() - moveTargetAt < 2000)
+            return moveTarget;
+        return { pan: root.pan, tilt: root.tilt };
+    }
+
     function moveGimbal(newPan, newTilt) {
         const clamp = (v, range) => range ? Math.max(range[0], Math.min(range[1], v)) : v;
         const p = clamp(newPan, root.limits?.pan);
         const t = clamp(newTilt, root.limits?.tilt);
+        root.moveTarget = { pan: p, tilt: t };
+        root.moveTargetAt = Date.now();
         root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, pose: { pan: p, tilt: t }, status: { ai_mode: "static" } });
     }
 
