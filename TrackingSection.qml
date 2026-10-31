@@ -54,14 +54,23 @@ SectionCard {
     }
 
     // Measured with zone tracking on (Tiny 2 Lite): when the target left the area the camera kept
-    // tracking and took a new one, except with the zone return position at pan 0 / tilt 0 /
-    // zoom 1.0, where it went Static in 6 of 7 runs. Not in the compact tile.
+    // tracking and took a new one. Before obsbot4linux 0.7.3 its pose polling made it go Static
+    // instead (nofuturekid/obsbot4linux#67). Not in the compact tile.
     ToggleRow {
         width: parent.width
         visible: section.ctl.has("zone_follow") && !section.compact
         label: "Follow new targets"
         checked: section.ctl.cam.state?.zone_follow === true
         onToggled: checked => section.ctl.send(["zone", "follow", checked ? "on" : "off"], checked ? "Following new targets" : "Not following new targets", { state: { zone_follow: checked } })
+    }
+
+    // Experimental: the tracked target's box over the preview
+    ToggleRow {
+        width: parent.width
+        visible: section.ctl.has("target") && !section.compact
+        label: "Show target box in preview"
+        checked: section.ctl.showTargetBox
+        onToggled: checked => section.ctl.setShowTargetBox(checked)
     }
 
     // A click assigns currentIndex and breaks the binding; re-sync to the camera state

@@ -37,11 +37,11 @@ goes to its default tab, ordered by its place in the old column.
   runs (no other app can use the camera meanwhile; it stops when the popout
   closes), otherwise a hint with one action: Start preview, Wake camera, or
   Retry when the camera or obsbot4linux can't be reached
-- tracking: AI mode, speed, tracked hand, follow new targets (measured with zone
-  tracking on: keeps tracking and waits for a new target instead of switching to
-  Static, except with the zone return position at pan 0 / tilt 0 / zoom 1.0, where
-  it went Static in 6 of 7 runs); "searching" in the status
-  while it has lost its target
+- tracking: AI mode, speed, tracked hand, follow new targets (with zone tracking on
+  the camera keeps tracking and takes the next person after the target leaves the
+  area; obsbot4linux 0.7.3 or later); "searching" in the status while it has lost
+  its target; optionally the tracked target's box over the preview (popout and
+  desktop widget)
 - framing: pan/tilt d-pad with live pose and fine steps, center, zoom; the left and
   right arrows follow the picture (flipped while mirror is on); a manual
   move switches tracking to Static

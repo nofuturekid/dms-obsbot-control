@@ -81,6 +81,36 @@ ClippingRectangle {
         when: videoLoader.status === Loader.Ready
     }
 
+    // Experimental: the tracked target's box (target.box, normalised, read as left, top, right,
+    // bottom) over the 16:9 video, which PreserveAspectFit centres in the frame
+    Item {
+        readonly property real videoWidth: Math.min(frame.width, frame.height * 16 / 9)
+        readonly property var box: frame.ctl.cam?.target?.box ?? null
+        x: (frame.width - width) / 2
+        y: (frame.height - height) / 2
+        width: videoWidth
+        height: videoWidth * 9 / 16
+        visible: frame.previewShown && (frame.ctl.showTargetBox ?? false) && box !== null && box.length === 4
+
+        Rectangle {
+            readonly property var b: parent.box ?? [0, 0, 0, 0]
+            x: b[0] * parent.width
+            y: b[1] * parent.height
+            width: Math.max(0, (b[2] - b[0]) * parent.width)
+            height: Math.max(0, (b[3] - b[1]) * parent.height)
+            color: "transparent"
+            radius: Theme.cornerRadius / 2
+            border.width: 2
+            // green while the camera has the target, warning colour while it searches
+            border.color: frame.ctl.cam?.target?.detected === false ? Theme.warning : Theme.success
+
+            Behavior on x { NumberAnimation { duration: 250 } }
+            Behavior on y { NumberAnimation { duration: 250 } }
+            Behavior on width { NumberAnimation { duration: 250 } }
+            Behavior on height { NumberAnimation { duration: 250 } }
+        }
+    }
+
     HoverHandler {
         id: frameHover
         enabled: frame.interactive

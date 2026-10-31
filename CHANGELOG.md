@@ -6,6 +6,21 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
+## [Unreleased]
+
+### Added
+
+- "Show target box in preview" in the Tracking card: draws the box of the person the camera
+  tracks over the preview, in the popout and in the desktop widget; green while the camera has
+  the target, warning colour while it searches. Off by default. The box follows at most once a
+  second (#63).
+
+### Fixed
+
+- The zone hint and the README no longer say that the camera may go Static after the target
+  leaves the area: obsbot4linux 0.7.3 fixed that (it came from its pose polling,
+  nofuturekid/obsbot4linux#67).
+
 ## [0.20.1] - 2026-10-31
 
 ### Fixed

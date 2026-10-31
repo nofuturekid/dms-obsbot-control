@@ -27,6 +27,9 @@ DesktopPluginComponent {
 
     // Camera state from obsbot4linux watch, same fields as the popout reads
     property var cam: ({})
+    // The bar widget's "Show target box" switch (a global plugin setting, not this instance's).
+    // SettingsData replaces pluginSettings on every save, so the binding follows at once.
+    readonly property bool showTargetBox: SettingsData.pluginSettings[pluginId]?.showTargetBox ?? false
     readonly property bool toolMissing: watch.toolMissing
     readonly property string videoNode: watch.videoNode
     property bool previewOn: false

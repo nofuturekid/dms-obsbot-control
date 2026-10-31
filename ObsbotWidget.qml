@@ -47,6 +47,11 @@ PluginComponent {
     readonly property bool hideWithoutCamera: pluginData?.hideWithoutCamera ?? false
     // Settings page: short status text next to the bar icon (horizontal bars only), off by default
     readonly property bool statusTextInBar: pluginData?.statusTextInBar ?? false
+    // Experimental: draw the tracked target's box over the preview (popout and desktop widget)
+    readonly property bool showTargetBox: pluginData?.showTargetBox ?? false
+    function setShowTargetBox(on) {
+        pluginService?.savePluginData(pluginId, "showTargetBox", on);
+    }
     // Settings page: one switch per popout card, all on by default. Popout only; the bar icon
     // and the Control Center tile do not look at them.
     function cardEnabled(card) {
