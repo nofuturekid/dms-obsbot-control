@@ -13,7 +13,7 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Quick presses of the arrow keys fell short (four presses from 0 ended at 14.9 instead of 20):
   each press added the step to the live pose, which since obsbot4linux 0.7.3 is the gimbal's real
   position on the way to the previous target. While an own move is under way (2 s after the last
-  press) the arrows now build on the target that was sent.
+  press) the arrows now build on the target that was sent (#61).
 
 ## [0.20.0] - 2026-10-31
 
