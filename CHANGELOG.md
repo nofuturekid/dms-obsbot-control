@@ -6,7 +6,7 @@ All notable changes to this widget. The format follows
 Changes that come from someone else (a merged pull request, or an issue or report that led to
 the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
-## [Unreleased]
+## [0.21.0] - 2026-10-31
 
 ### Added
 
